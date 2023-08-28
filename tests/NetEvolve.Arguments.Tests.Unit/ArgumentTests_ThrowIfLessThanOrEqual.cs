@@ -44,5 +44,6 @@ public sealed partial class ArgumentTests
         Argument.ThrowIfLessThanOrEqual(argument, minimum);
 
         // Assert
+        Assert.True(true);
     }
 }

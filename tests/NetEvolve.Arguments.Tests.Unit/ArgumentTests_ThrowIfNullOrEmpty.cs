@@ -41,5 +41,6 @@ public sealed partial class ArgumentTests
         Argument.ThrowIfNullOrEmpty(argument);
 
         // Assert
+        Assert.True(true);
     }
 }

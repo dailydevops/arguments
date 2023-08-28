@@ -30,5 +30,6 @@ public sealed partial class ArgumentTests
         Argument.ThrowIfLessThan(argument, minimum);
 
         // Assert
+        Assert.True(true);
     }
 }

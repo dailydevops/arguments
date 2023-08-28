@@ -30,5 +30,6 @@ public sealed partial class ArgumentTests
         Argument.ThrowIfGreaterThan(argument, maximum);
 
         // Assert
+        Assert.True(true);
     }
 }
