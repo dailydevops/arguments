@@ -6,6 +6,9 @@
     <Description>A library that provides compatible `ThrowIf` methods for .NET / C# for older runtimes.</Description>
 
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!-- Remove, when Polyfill has fixed this. -->
+    <DisableBannedApiForPerformance>true</DisableBannedApiForPerformance>
   </PropertyGroup>
 
   <ItemGroup>
