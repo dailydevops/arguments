@@ -1,8 +1,8 @@
 ﻿namespace NetEvolve.Arguments;
 
-using System.Runtime.CompilerServices;
 using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 public static partial class Argument
 {
