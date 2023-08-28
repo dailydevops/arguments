@@ -24,7 +24,7 @@ jobs:
     uses: dailydevops/pipelines/.github/workflows/cicd-dotnet.yml@main
     with:
       enableSonarQube: true
-      dotnet-logging: ${{ inputs.dotnet-logging | 'minimal' }}
+      dotnet-logging: ${{ inputs.dotnet-logging }}
       dotnet-quality: preview
       dotnet-version: |
         3.1.x
