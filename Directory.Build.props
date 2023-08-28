@@ -9,4 +9,8 @@
   <Import Project="$(DirEngineeringSettings)src.build.props" Condition=" !$(IsTestableProject) " />
   <Import Project="$(DirEngineeringSettings)tests.build.props" Condition=" $(IsTestableProject) " />
 
+  <PropertyGroup>
+    <DisableCompatibility>true</DisableCompatibility>
+  </PropertyGroup>
+
 </Project>
