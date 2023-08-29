@@ -16,7 +16,7 @@ public static partial class Argument
     [StackTraceHidden]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ThrowIfNullOrEmpty(
-        [NotNull] this string? argument,
+        [NotNull] string? argument,
         [CallerArgumentExpression(nameof(argument))] string? paramName = null
     )
     {
