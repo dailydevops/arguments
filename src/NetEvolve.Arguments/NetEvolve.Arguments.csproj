@@ -11,9 +11,6 @@
     <PackageProjectUrl>https://github.com/dailydevops/arguments</PackageProjectUrl>
     <RepositoryUrl>https://github.com/dailydevops/arguments.git</RepositoryUrl>
     <PackageTags>guard;clausel;exceptions</PackageTags>
-
-    <!-- Remove, when Polyfill has fixed this. -->
-    <DisableBannedApiForPerformance>true</DisableBannedApiForPerformance>
   </PropertyGroup>
 
   <ItemGroup>
