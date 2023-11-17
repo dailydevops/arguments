@@ -1,10 +1,8 @@
 ﻿namespace NetEvolve.Arguments.Tests.Unit;
 
-using NetEvolve.Extensions.XUnit;
 using System.Diagnostics.CodeAnalysis;
+using NetEvolve.Extensions.XUnit;
 
 [ExcludeFromCodeCoverage]
 [UnitTest]
-public sealed partial class ArgumentTests
-{
-}
+public sealed partial class ArgumentTests { }
