@@ -23,7 +23,7 @@ public static partial class Argument
 #else
         if (argument is null)
         {
-            throw new ArgumentNullException(paramName);
+            ThrowArgumentNullException(paramName);
         }
 #endif
     }

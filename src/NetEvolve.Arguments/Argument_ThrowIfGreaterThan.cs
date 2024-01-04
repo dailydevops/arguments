@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 public static partial class Argument
@@ -25,7 +26,7 @@ public static partial class Argument
 #else
         if (value.CompareTo(other) > 0)
         {
-            throw new ArgumentOutOfRangeException(paramName, value, null);
+            ThrowArgumentOutOfRangeException(paramName, value);
         }
 #endif
     }
