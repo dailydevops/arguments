@@ -25,7 +25,7 @@ public static partial class Argument
 #else
         if (value.CompareTo(other) < 0)
         {
-            throw new ArgumentOutOfRangeException(paramName, value, null);
+            ThrowArgumentOutOfRangeException(paramName, value);
         }
 #endif
     }

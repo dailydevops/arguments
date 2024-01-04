@@ -25,12 +25,12 @@ public static partial class Argument
 #else
         if (argument is null)
         {
-            throw new ArgumentNullException(paramName);
+            ThrowArgumentNullException(paramName);
         }
 
         if (string.IsNullOrWhiteSpace(argument))
         {
-            throw new ArgumentException(null, paramName);
+            ThrowArgumentException(paramName);
         }
 #endif
     }
