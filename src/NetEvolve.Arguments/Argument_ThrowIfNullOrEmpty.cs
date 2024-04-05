@@ -14,7 +14,11 @@ public static partial class Argument
     /// <exception cref="ArgumentException"><paramref name="argument"/> is empty.</exception>
     [DebuggerStepThrough]
     [StackTraceHidden]
+#if NET7_0_OR_GREATER
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#else
+    [MethodImpl(MethodImplOptions.NoInlining)]
+#endif
     public static void ThrowIfNullOrEmpty(
         [NotNull] string? argument,
         [CallerArgumentExpression(nameof(argument))] string? paramName = null
