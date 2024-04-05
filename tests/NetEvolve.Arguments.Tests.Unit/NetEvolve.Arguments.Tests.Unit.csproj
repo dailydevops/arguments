@@ -5,6 +5,8 @@
     <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
 
     <NoWarn>$(NoWarn);NU1701</NoWarn>
+
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>

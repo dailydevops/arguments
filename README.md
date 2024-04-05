@@ -5,23 +5,32 @@ Especially intended for projects with multiple `TargetFrameworks`, for usage, st
 ## Method Overview
 The following methods are currently provided.
 
-### ThrowIfGreaterThan
-Compatibility method to [`ArgumentOutOfRangeException.ThrowIfGreaterThan<T>(T, T, String)`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwifgreaterthan), which was introduced with .NET 8
+### `Argument.ThrowIfEqual<T>(T, T, string?)`
+Throws an `ArgumentOutOfRangeException` if the first argument is equal to the second argument. Inplace replacement for [`ArgumentOutOfRangeException.ThrowIfEqual<T>(T, T, string)`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwifequal), which was introduced with **.NET 8**.
 
-### ThrowIfGreaterThanOrEqual
-Compatibility method to [`ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual<T>(T, T, String)`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwifgreaterthanorequal), which is part of the framework since .NET 8.
+### `Argument.ThrowIfGreaterThan<T>(T, T, string?)`
+Throws an `ArgumentOutOfRangeException` if the first argument is greater than the second argument. Inplace replacement for [`ArgumentOutOfRangeException.ThrowIfGreaterThan<T>(T, T, string)`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwifgreaterthan), which was introduced with **.NET 8**.
 
-### ThrowIfLessThan
-Compatibility method to [`ArgumentOutOfRangeException.ThrowIfLessThan<T>(T, T, String)`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwiflessthan), which is part of the framework since .NET 8.
+### `Argument.ThrowIfGreaterThanOrEqual<T>(T, T, string?)`
+Throws an `ArgumentOutOfRangeException` if the first argument is greater than or equal to the second argument. Inplace replacement for [`ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual<T>(T, T, string)`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwifgreaterthanorequal), which was introduced with **.NET 8**.
 
-### ThrowIfLessThanOrEqual
-Compatibility method to [`ArgumentOutOfRangeException.ThrowIfLessThanOrEqual<T>(T, T, String)`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwiflessthanorequal), which is part of the framework since .NET 8.
+### `Argument.ThrowIfLessThan<T>(T, T, string?)`
+Throws an `ArgumentOutOfRangeException` if the first argument is less than the second argument. Inplace replacement for [`ArgumentOutOfRangeException.ThrowIfLessThan<T>(T, T, string)`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwiflessthan), which was introduced with **.NET 8**.
 
-### ThrowIfNull
-Compatibility method to [`ArgumentNullException.ThrowIfNull(Object, String)`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception.throwifnull#system-argumentnullexception-throwifnull(system-object-system-string)), which is part of the framework since .NET 8.
+### `Argument.ThrowIfLessThanOrEqual<T>(T, T, string?)`
+Throws an `ArgumentOutOfRangeException` if the first argument is less than or equal to the second argument. Inplace replacement for [`ArgumentOutOfRangeException.ThrowIfLessThanOrEqual<T>(T, T, string)`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwiflessthanorequal), which was introduced with **.NET 8**.
 
-### ThrowIfNullOrEmpty
-Compatibility method to [`ArgumentException.ThrowIfNullOrEmpty(String, String)`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentexception.throwifnullorempty), which is part of the framework since .NET 8.
+### `Argument.ThrowIfNotEqual<T>(T, T, string?)`
+Throws an `ArgumentOutOfRangeException` if the first argument is not equal to the second argument. Inplace replacement for [`ArgumentOutOfRangeException.ThrowIfNotEqual<T>(T, T, string)`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwifnotequal), which was introduced with **.NET 8**.
 
-### ThrowIfNullOrWhiteSpace
-Compatibility method to [`ArgumentException.ThrowIfNullOrWhiteSpace(String, String)`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentexception.throwifnullorwhitespace), which is part of the framework since .NET 8.
+### `Argument.ThrowIfNull(object?, string?)`
+Throws an `ArgumentNullException` if the argument is `null`. Inplace replacement for [`ArgumentNullException.ThrowIfNull(object, string)`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception.throwifnull), which was introduced with **.NET 6**.
+
+### `Argument.ThrowIfNull(void*, string?)`
+Throws an `ArgumentNullException` if the argument is `null`. Inplace replacement for [`ArgumentNullException.ThrowIfNull(void*, string)`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception.throwifnull?view=net-8.0#system-argumentnullexception-throwifnull(system-void*-system-string), which was introduced with **.NET 7**.
+
+### `Argument.ThrowIfNullOrEmpty(string?, string?)`
+Throws an `ArgumentNullException` if the argument is `null` or throws an `ArgumentException` if the argument is empty. Inplace replacement for [`ArgumentException.ThrowIfNullOrEmpty(string, string)`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentexception.throwifnullorempty), which was introduced with **.NET 7**.
+
+### `Argument.ThrowIfNullOrWhiteSpace(string?, string?)`
+Throws an `ArgumentNullException` if the argument is `null` or throws an `ArgumentException` if the argument is empty or contains only white-space characters. Inplace replacement for [`ArgumentException.ThrowIfNullOrWhiteSpace(string, string)`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentexception.throwifnullorwhitespace), which was introduced with **.NET 8**.

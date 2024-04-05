@@ -31,4 +31,29 @@ public static partial class Argument
         }
 #endif
     }
+
+    /// <summary>Throws an <see cref="ArgumentNullException"/> if <paramref name="argument"/> is null.</summary>
+    /// <param name="argument">The reference type argument to validate as non-null.</param>
+    /// <param name="paramName">The name of the parameter with which <paramref name="argument"/> corresponds.</param>
+    [DebuggerStepThrough]
+    [StackTraceHidden]
+#if NET7_0_OR_GREATER
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#else
+    [MethodImpl(MethodImplOptions.NoInlining)]
+#endif
+    public static unsafe void ThrowIfNull(
+        [NotNull] void* argument,
+        [CallerArgumentExpression(nameof(argument))] string? paramName = null
+    )
+    {
+#if NET7_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(argument, paramName);
+#else
+        if (argument == null)
+        {
+            ThrowArgumentNullException(paramName);
+        }
+#endif
+    }
 }

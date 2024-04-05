@@ -12,9 +12,9 @@ public static partial class Argument
     [DoesNotReturn]
     [MethodImpl(MethodImplOptions.NoInlining)]
     [StackTraceHidden]
-    private static void ThrowArgumentException(string? paramName)
+    private static void ThrowArgumentException(string? paramName, string? message = null)
     {
-        throw new ArgumentException(null, paramName);
+        throw new ArgumentException(message, paramName);
     }
 }
 #endif
