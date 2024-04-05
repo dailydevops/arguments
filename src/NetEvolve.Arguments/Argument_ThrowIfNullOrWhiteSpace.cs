@@ -13,8 +13,12 @@ public static partial class Argument
     /// <exception cref="ArgumentNullException"><paramref name="argument"/> is null.</exception>
     /// <exception cref="ArgumentException"><paramref name="argument"/> is empty or consists only of white-space characters.</exception>
     [DebuggerStepThrough]
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     [StackTraceHidden]
+#if NET8_0_OR_GREATER
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#else
+    [MethodImpl(MethodImplOptions.NoInlining)]
+#endif
     public static void ThrowIfNullOrWhiteSpace(
         [NotNull] string? argument,
         [CallerArgumentExpression(nameof(argument))] string? paramName = null

@@ -11,8 +11,12 @@ public static partial class Argument
     /// <param name="other">The value to compare with <paramref name="value"/>.</param>
     /// <param name="paramName">The name of the parameter with which <paramref name="value"/> corresponds.</param>
     [DebuggerStepThrough]
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     [StackTraceHidden]
+#if NET8_0_OR_GREATER
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#else
+    [MethodImpl(MethodImplOptions.NoInlining)]
+#endif
     public static void ThrowIfLessThanOrEqual<T>(
         T value,
         T other,
