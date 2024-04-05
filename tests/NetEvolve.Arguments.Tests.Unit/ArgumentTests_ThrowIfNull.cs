@@ -30,4 +30,30 @@ public sealed partial class ArgumentTests
         // Assert
         Assert.True(true);
     }
+
+    [Fact]
+    public unsafe void ThrowIfNull_WhenArgumentIsNullPointer_ThrowsArgumentNullException()
+    {
+        // Arrange
+        int* argument = null;
+
+        // Act
+        void Act() => Argument.ThrowIfNull(argument);
+
+        // Assert
+        _ = Assert.Throws<ArgumentNullException>("argument", Act);
+    }
+
+    [Fact]
+    public unsafe void ThrowIfNull_WhenArgumentIsNotNullPointer_ReturnsArgument()
+    {
+        // Arrange
+        var argument = (int*)0x1;
+
+        // Act
+        Argument.ThrowIfNull(argument);
+
+        // Assert
+        Assert.True(true);
+    }
 }
