@@ -41,6 +41,11 @@ public static partial class Argument
 #endif
     }
 
+    /// <summary>Throws an exception if <paramref name="argument"/> is null or empty.</summary>
+    /// <param name="argument">The string argument to validate as non-null and non-empty.</param>
+    /// <param name="paramName">The name of the parameter with which <paramref name="argument"/> corresponds.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="argument"/> is null.</exception>
+    /// <exception cref="ArgumentException"><paramref name="argument"/> is empty.</exception>
     [DebuggerStepThrough]
     [StackTraceHidden]
     [MethodImpl(MethodImplOptions.NoInlining)]
