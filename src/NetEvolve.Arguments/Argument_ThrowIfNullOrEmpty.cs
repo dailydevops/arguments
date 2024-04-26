@@ -1,8 +1,10 @@
 ﻿namespace NetEvolve.Arguments;
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 public static partial class Argument
@@ -37,5 +39,24 @@ public static partial class Argument
             ThrowArgumentException(paramName);
         }
 #endif
+    }
+
+    [DebuggerStepThrough]
+    [StackTraceHidden]
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void ThrowIfNullOrEmpty<T>(
+        [NotNull] IEnumerable<T> argument,
+        [CallerArgumentExpression(nameof(argument))] string? paramName = null
+    )
+    {
+        if (argument is null)
+        {
+            ThrowArgumentNullException(paramName);
+        }
+
+        if (argument.TryGetNonEnumeratedCount(out var count) && count == 0)
+        {
+            ThrowArgumentException(paramName);
+        }
     }
 }

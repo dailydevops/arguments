@@ -1,5 +1,4 @@
-﻿#if !NET8_0_OR_GREATER
-namespace NetEvolve.Arguments;
+﻿namespace NetEvolve.Arguments;
 
 using System;
 using System.Diagnostics;
@@ -17,4 +16,3 @@ public static partial class Argument
         throw new ArgumentNullException(paramName, message);
     }
 }
-#endif
