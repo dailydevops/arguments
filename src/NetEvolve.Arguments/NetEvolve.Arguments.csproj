@@ -12,6 +12,8 @@
     <RepositoryUrl>https://github.com/dailydevops/arguments.git</RepositoryUrl>
     <PackageTags>guard;clausel;exceptions</PackageTags>
 
+    <CopyrightStartYear>2023</CopyrightStartYear>
+
     <!-- Remove, when Polyfill has fixed this. -->
     <DisableBannedApiForPerformance>true</DisableBannedApiForPerformance>
   </PropertyGroup>
