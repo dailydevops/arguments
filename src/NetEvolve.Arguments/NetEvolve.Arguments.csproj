@@ -12,6 +12,8 @@
     <RepositoryUrl>https://github.com/dailydevops/arguments.git</RepositoryUrl>
     <PackageTags>guard;clausel;exceptions</PackageTags>
 
+    <PackageReleaseNotes>$(PackageProjectUrl)/releases/</PackageReleaseNotes>
+
     <CopyrightYearStart>2023</CopyrightYearStart>
 
     <!-- Remove, when Polyfill has fixed this. -->
