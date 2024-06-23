@@ -32,5 +32,8 @@ Throws an `ArgumentNullException` if the argument is `null`. Inplace replacement
 ### `Argument.ThrowIfNullOrEmpty(string?, string?)`
 Throws an `ArgumentNullException` if the argument is `null` or throws an `ArgumentException` if the argument is empty. Inplace replacement for [`ArgumentException.ThrowIfNullOrEmpty(string, string)`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentexception.throwifnullorempty), which was introduced with **.NET 7**.
 
+### `Argument.ThrowIfNullOrEmpty<T>(IEnumerable<T>?, string?)` (Individuall extension)
+Throws an `ArgumentNullException` if the argument is `null` or throws an `ArgumentException` if the argument is empty.
+
 ### `Argument.ThrowIfNullOrWhiteSpace(string?, string?)`
 Throws an `ArgumentNullException` if the argument is `null` or throws an `ArgumentException` if the argument is empty or contains only white-space characters. Inplace replacement for [`ArgumentException.ThrowIfNullOrWhiteSpace(string, string)`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentexception.throwifnullorwhitespace), which was introduced with **.NET 8**.
