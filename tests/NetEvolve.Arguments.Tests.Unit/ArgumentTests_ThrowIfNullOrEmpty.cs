@@ -92,7 +92,7 @@ public sealed partial class ArgumentTests
             {
                 Array.Empty<string>(),
                 new List<string>(),
-                new HashSet<string>()
+                new HashSet<string>(),
             };
 
             return data;
@@ -109,7 +109,7 @@ public sealed partial class ArgumentTests
                 new[] { "argument" },
 #pragma warning restore CA1861 // Avoid constant arrays as arguments
                 new List<string> { "argument" },
-                new HashSet<string> { "argument" }
+                new HashSet<string> { "argument" },
             };
 
             return data;
