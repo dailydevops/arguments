@@ -26,7 +26,7 @@ jobs:
       enableSonarQube: true
       dotnet-logging: ${{ inputs.dotnet-logging }}
       dotnet-quality: ga
-      dotnet-version: |
+      dotnet-version: ${{ vars.NE_DOTNET_TARGETFRAMEWORKS }}
         3.1.x
         5.x
         6.x
