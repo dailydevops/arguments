@@ -42,7 +42,9 @@ public static partial class Argument
 #else
     [MethodImpl(MethodImplOptions.NoInlining)]
 #endif
+#pragma warning disable S6640 // Make sure that using "unsafe" is safe here.
     public static unsafe void ThrowIfNull(
+#pragma warning restore S6640 // Make sure that using "unsafe" is safe here.
         [NotNull] void* argument,
         [CallerArgumentExpression(nameof(argument))] string? paramName = null
     )
