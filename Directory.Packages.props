@@ -15,8 +15,8 @@
     <GlobalPackageReference Include="SonarAnalyzer.CSharp" Version="10.3.0.106239" Condition=" '$(BuildingInsideVisualStudio)' == 'true' " />
   </ItemGroup>
   <ItemGroup>
-    <PackageVersion Include="coverlet.collector" Version="6.0.2" />
-    <PackageVersion Include="coverlet.msbuild" Version="6.0.2" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.3" />
+    <PackageVersion Include="coverlet.msbuild" Version="6.0.3" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageVersion Include="NetEvolve.Extensions.XUnit" Version="2.5.0" />
     <PackageVersion Include="Polyfill" Version="7.8.0" />
