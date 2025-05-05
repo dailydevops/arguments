@@ -60,9 +60,7 @@ public sealed partial class ArgumentTests
 
     [Theory]
     [MemberData(nameof(ThrowIfNullOrEmptyEnumerableData))]
-    public void ThrowIfNullOrEmpty_WhenIEnumerableIsEmpty_ThrowsArgumentException(
-        IEnumerable<string> argument
-    )
+    public void ThrowIfNullOrEmpty_WhenIEnumerableIsEmpty_ThrowsArgumentException(IEnumerable<string> argument)
     {
         // Act
         void Act() => Argument.ThrowIfNullOrEmpty(argument);
@@ -73,9 +71,7 @@ public sealed partial class ArgumentTests
 
     [Theory]
     [MemberData(nameof(ThrowIfNullOrEmptyEnumerableWithData))]
-    public void ThrowIfNullOrEmpty_WhenIEnumerableIsNotEmpty_ReturnsArgument(
-        IEnumerable<string> argument
-    )
+    public void ThrowIfNullOrEmpty_WhenIEnumerableIsNotEmpty_ReturnsArgument(IEnumerable<string> argument)
     {
         // Act
         Argument.ThrowIfNullOrEmpty(argument);

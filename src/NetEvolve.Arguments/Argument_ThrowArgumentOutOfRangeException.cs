@@ -12,11 +12,7 @@ public static partial class Argument
     [DoesNotReturn]
     [MethodImpl(MethodImplOptions.NoInlining)]
     [StackTraceHidden]
-    private static void ThrowArgumentOutOfRangeException<T>(
-        string? paramName,
-        T value,
-        string? message = null
-    )
+    private static void ThrowArgumentOutOfRangeException<T>(string? paramName, T value, string? message = null)
     {
         throw new ArgumentOutOfRangeException(paramName, value, message);
     }

@@ -30,11 +30,7 @@ public static partial class Argument
 #else
         if (!EqualityComparer<T>.Default.Equals(value, other))
         {
-            ThrowArgumentOutOfRangeException(
-                paramName,
-                value,
-                $"{paramName} ('{value}') must be equal to '{other}'."
-            );
+            ThrowArgumentOutOfRangeException(paramName, value, $"{paramName} ('{value}') must be equal to '{other}'.");
         }
 #endif
     }
