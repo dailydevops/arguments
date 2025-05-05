@@ -26,7 +26,7 @@
     <PackageVersion Include="coverlet.msbuild" Version="6.0.4" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
     <PackageVersion Include="NetEvolve.Extensions.XUnit" Version="2.5.105" />
-    <PackageVersion Include="Polyfill" Version="7.27.0" />
+    <PackageVersion Include="Polyfill" Version="7.29.0" />
     <PackageVersion Include="xunit" Version="2.9.3" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'net5.0' Or '$(TargetFramework)' == 'netcoreapp3.1' ">
