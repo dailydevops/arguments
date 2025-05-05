@@ -29,11 +29,7 @@ public static partial class Argument
 #else
         if (value.CompareTo(other) >= 0)
         {
-            ThrowArgumentOutOfRangeException(
-                paramName,
-                value,
-                $"{paramName} ('{value}') must be less than '{other}'."
-            );
+            ThrowArgumentOutOfRangeException(paramName, value, $"{paramName} ('{value}') must be less than '{other}'.");
         }
 #endif
     }
