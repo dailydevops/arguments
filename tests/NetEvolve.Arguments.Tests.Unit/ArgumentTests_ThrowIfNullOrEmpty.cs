@@ -58,9 +58,17 @@ public sealed partial class ArgumentTests
         _ = Assert.Throws<ArgumentNullException>(nameof(argument), Act);
     }
 
+    [Test]
+    [MethodDataSource(nameof(ThrowIfNullOrEmptyEnumerableData))]
+    public void ThrowIfNullOrEmpty_WhenIEnumerableEmpty_ThrowsArgumentNullException(IEnumerable<string>? argument)
+    {
+        // Act
+        void Act() => Argument.ThrowIfNullOrEmpty(argument);
+
+        // Assert
+        _ = Assert.Throws<ArgumentNullException>(nameof(argument), Act);
+    }
+
     public static IEnumerable<IEnumerable<string>> ThrowIfNullOrEmptyEnumerableData =>
         [Array.Empty<string>(), new List<string>(), new HashSet<string>()];
-
-    public static IEnumerable<IEnumerable<string>> ThrowIfNullOrEmptyEnumerableWithData =>
-        [new[] { "argument" }, new List<string> { "argument" }, new HashSet<string> { "argument" }];
 }
