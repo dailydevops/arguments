@@ -1,11 +1,11 @@
 ﻿namespace NetEvolve.Arguments.Tests.Unit;
 
 using System;
-using Xunit;
+using System.Threading.Tasks;
 
 public sealed partial class ArgumentTests
 {
-    [Fact]
+    [Test]
     public void ThrowIfNullOrWhiteSpace_WhenArgumentIsNull_ThrowsArgumentNullException()
     {
         // Arrange
@@ -18,7 +18,7 @@ public sealed partial class ArgumentTests
         _ = Assert.Throws<ArgumentNullException>("argument", Act);
     }
 
-    [Fact]
+    [Test]
     public void ThrowIfNullOrWhiteSpace_WhenArgumentIsEmpty_ThrowsArgumentException()
     {
         // Arrange
@@ -31,7 +31,7 @@ public sealed partial class ArgumentTests
         _ = Assert.Throws<ArgumentException>("argument", Act);
     }
 
-    [Fact]
+    [Test]
     public void ThrowIfNullOrWhiteSpace_WhenArgumentIsWhiteSpace_ThrowsArgumentException()
     {
         // Arrange
@@ -44,8 +44,8 @@ public sealed partial class ArgumentTests
         _ = Assert.Throws<ArgumentException>("argument", Act);
     }
 
-    [Fact]
-    public void ThrowIfNullOrWhiteSpace_WhenArgumentIsNotEmpty_ReturnsArgument()
+    [Test]
+    public async Task ThrowIfNullOrWhiteSpace_WhenArgumentIsNotEmpty_ReturnsArgument()
     {
         // Arrange
         var argument = "argument";
@@ -54,6 +54,6 @@ public sealed partial class ArgumentTests
         Argument.ThrowIfNullOrWhiteSpace(argument);
 
         // Assert
-        Assert.True(true);
+        _ = await Assert.That(argument).IsNotNullOrWhiteSpace();
     }
 }

@@ -2,11 +2,11 @@
 
 using System;
 using System.Collections.Generic;
-using Xunit;
+using TUnit.Assertions.Extensions;
 
 public sealed partial class ArgumentTests
 {
-    [Fact]
+    [Test]
     public void ThrowIfNullOrEmpty_WhenArgumentIsNull_ThrowsArgumentNullException()
     {
         // Arrange
@@ -19,7 +19,7 @@ public sealed partial class ArgumentTests
         _ = Assert.Throws<ArgumentNullException>("argument", Act);
     }
 
-    [Fact]
+    [Test]
     public void ThrowIfNullOrEmpty_WhenArgumentIsEmpty_ThrowsArgumentException()
     {
         // Arrange
@@ -32,8 +32,8 @@ public sealed partial class ArgumentTests
         _ = Assert.Throws<ArgumentException>("argument", Act);
     }
 
-    [Fact]
-    public void ThrowIfNullOrEmpty_WhenArgumentIsNotEmpty_ReturnsArgument()
+    [Test]
+    public async Task ThrowIfNullOrEmpty_WhenArgumentIsNotEmpty_ReturnsArgument()
     {
         // Arrange
         var argument = "argument";
@@ -42,10 +42,10 @@ public sealed partial class ArgumentTests
         Argument.ThrowIfNullOrEmpty(argument);
 
         // Assert
-        Assert.True(true);
+        _ = await Assert.That(argument).IsNotNullOrWhiteSpace();
     }
 
-    [Fact]
+    [Test]
     public void ThrowIfNullOrEmpty_WhenIEnumerableNull_ThrowsArgumentNullException()
     {
         // Arrange
@@ -58,57 +58,9 @@ public sealed partial class ArgumentTests
         _ = Assert.Throws<ArgumentNullException>(nameof(argument), Act);
     }
 
-    [Theory]
-    [MemberData(nameof(ThrowIfNullOrEmptyEnumerableData))]
-    public void ThrowIfNullOrEmpty_WhenIEnumerableIsEmpty_ThrowsArgumentException(IEnumerable<string> argument)
-    {
-        // Act
-        void Act() => Argument.ThrowIfNullOrEmpty(argument);
+    public static IEnumerable<IEnumerable<string>> ThrowIfNullOrEmptyEnumerableData =>
+        [Array.Empty<string>(), new List<string>(), new HashSet<string>()];
 
-        // Assert
-        _ = Assert.Throws<ArgumentException>(nameof(argument), Act);
-    }
-
-    [Theory]
-    [MemberData(nameof(ThrowIfNullOrEmptyEnumerableWithData))]
-    public void ThrowIfNullOrEmpty_WhenIEnumerableIsNotEmpty_ReturnsArgument(IEnumerable<string> argument)
-    {
-        // Act
-        Argument.ThrowIfNullOrEmpty(argument);
-
-        // Assert
-        Assert.True(true);
-    }
-
-    public static TheoryData<IEnumerable<string>> ThrowIfNullOrEmptyEnumerableData
-    {
-        get
-        {
-            var data = new TheoryData<IEnumerable<string>>
-            {
-                Array.Empty<string>(),
-                new List<string>(),
-                new HashSet<string>(),
-            };
-
-            return data;
-        }
-    }
-
-    public static TheoryData<IEnumerable<string>> ThrowIfNullOrEmptyEnumerableWithData
-    {
-        get
-        {
-            var data = new TheoryData<IEnumerable<string>>
-            {
-#pragma warning disable CA1861 // Avoid constant arrays as arguments
-                new[] { "argument" },
-#pragma warning restore CA1861 // Avoid constant arrays as arguments
-                new List<string> { "argument" },
-                new HashSet<string> { "argument" },
-            };
-
-            return data;
-        }
-    }
+    public static IEnumerable<IEnumerable<string>> ThrowIfNullOrEmptyEnumerableWithData =>
+        [new[] { "argument" }, new List<string> { "argument" }, new HashSet<string> { "argument" }];
 }

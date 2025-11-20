@@ -1,11 +1,10 @@
 ﻿namespace NetEvolve.Arguments.Tests.Unit;
 
 using System;
-using Xunit;
 
 public sealed partial class ArgumentTests
 {
-    [Fact]
+    [Test]
     public void ThrowIfLessThan_WhenArgumentIsLessThanMinimum_ThrowsArgumentOutOfRangeException()
     {
         // Arrange
@@ -19,8 +18,8 @@ public sealed partial class ArgumentTests
         _ = Assert.Throws<ArgumentOutOfRangeException>("argument", Act);
     }
 
-    [Fact]
-    public void ThrowIfLessThan_WhenArgumentIsEqualToMinimum_ReturnsArgument()
+    [Test]
+    public async Task ThrowIfLessThan_WhenArgumentIsEqualToMinimum_ReturnsArgument()
     {
         // Arrange
         var argument = 1;
@@ -30,6 +29,6 @@ public sealed partial class ArgumentTests
         Argument.ThrowIfLessThan(argument, minimum);
 
         // Assert
-        Assert.True(true);
+        _ = await Assert.That(minimum).IsEqualTo(1);
     }
 }
