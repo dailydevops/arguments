@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TUnit.Assertions.Extensions;
 
 public sealed partial class ArgumentTests
@@ -56,6 +57,28 @@ public sealed partial class ArgumentTests
 
         // Assert
         _ = Assert.Throws<ArgumentNullException>(nameof(argument), Act);
+    }
+
+    [Test]
+    [MethodDataSource(nameof(ThrowIfNullOrEmptyEnumerableData))]
+    public void ThrowIfNullOrEmpty_WhenIEnumerableEmpty_ThrowsArgumentException(IEnumerable<string>? argument)
+    {
+        // Act
+        void Act() => Argument.ThrowIfNullOrEmpty(argument);
+
+        // Assert
+        _ = Assert.Throws<ArgumentException>(nameof(argument), Act);
+    }
+
+    [Test]
+    [MethodDataSource(nameof(ThrowIfNullOrEmptyEnumerableWithData))]
+    public async Task ThrowIfNullOrEmpty_WhenIEnumerableEmpty_Expected(IEnumerable<string>? argument)
+    {
+        // Act
+        Argument.ThrowIfNullOrEmpty(argument);
+
+        // Assert
+        _ = await Assert.That(argument).IsNotNull().And.IsNotEmpty();
     }
 
     public static IEnumerable<IEnumerable<string>> ThrowIfNullOrEmptyEnumerableData =>
