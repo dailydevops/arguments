@@ -13,7 +13,7 @@ Modern .NET versions (starting with .NET 6) introduced streamlined argument vali
 
 ## Key Features
 
-- **Multi-Framework Support**: Compatible with .NET Standard 2.0, .NET 7.0, .NET 8.0, .NET 9.0, and .NET 10.0
+- **Multi-Framework Support**: Compatible with .NET Standard 2.0, .NET 8.0, .NET 9.0, and .NET 10.0
 - **Zero Runtime Overhead**: Uses conditional compilation to delegate to native implementations where available
 - **Drop-in Replacement**: Identical API signatures to native .NET implementations
 - **Type-Safe**: Fully generic implementations with proper type constraints
@@ -191,7 +191,6 @@ public void SetMinimum(int value, int threshold)
 | Target Framework | Status | Notes |
 |-----------------|--------|-------|
 | .NET Standard 2.0 | ✅ Supported | Full polyfill implementations |
-| .NET 7.0 | ✅ Supported | Partial native delegation |
 | .NET 8.0 | ✅ Supported | Delegates to native implementations where available |
 | .NET 9.0 | ✅ Supported | Full native delegation |
 | .NET 10.0 | ✅ Supported | Full native delegation |
