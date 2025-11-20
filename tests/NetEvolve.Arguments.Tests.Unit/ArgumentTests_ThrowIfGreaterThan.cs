@@ -1,11 +1,11 @@
 ﻿namespace NetEvolve.Arguments.Tests.Unit;
 
 using System;
-using Xunit;
+using System.Threading.Tasks;
 
 public sealed partial class ArgumentTests
 {
-    [Fact]
+    [Test]
     public void ThrowIfGreaterThan_WhenArgumentIsGreaterThanMaximum_ThrowsArgumentOutOfRangeException()
     {
         // Arrange
@@ -19,8 +19,8 @@ public sealed partial class ArgumentTests
         _ = Assert.Throws<ArgumentOutOfRangeException>("argument", Act);
     }
 
-    [Fact]
-    public void ThrowIfGreaterThan_WhenArgumentIsEqualToMaximum_ReturnsArgument()
+    [Test]
+    public async Task ThrowIfGreaterThan_WhenArgumentIsEqualToMaximum_ReturnsArgument()
     {
         // Arrange
         var argument = 1;
@@ -30,6 +30,6 @@ public sealed partial class ArgumentTests
         Argument.ThrowIfGreaterThan(argument, maximum);
 
         // Assert
-        Assert.True(true);
+        _ = await Assert.That(maximum).IsEqualTo(1);
     }
 }
