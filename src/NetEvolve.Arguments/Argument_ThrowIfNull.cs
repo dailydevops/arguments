@@ -17,6 +17,7 @@ public static partial class Argument
 #else
     [MethodImpl(MethodImplOptions.NoInlining)]
 #endif
+    [Obsolete("Use 'ArgumentNullException.ThrowIfNull(object?, string?)' instead.", error: Internals.ArgumentAsError)]
     public static void ThrowIfNull(
         [NotNull] object? argument,
         [CallerArgumentExpression(nameof(argument))] string? paramName = null
@@ -42,6 +43,7 @@ public static partial class Argument
 #else
     [MethodImpl(MethodImplOptions.NoInlining)]
 #endif
+    [Obsolete("Use 'ArgumentNullException.ThrowIfNull(void*, string?)' instead.", error: Internals.ArgumentAsError)]
 #pragma warning disable S6640 // Make sure that using "unsafe" is safe here.
     public static unsafe void ThrowIfNull(
 #pragma warning restore S6640 // Make sure that using "unsafe" is safe here.

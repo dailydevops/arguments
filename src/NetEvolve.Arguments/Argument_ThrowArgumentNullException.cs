@@ -11,7 +11,7 @@ public static partial class Argument
     [DoesNotReturn]
     [MethodImpl(MethodImplOptions.NoInlining)]
     [StackTraceHidden]
-    private static void ThrowArgumentNullException(string? paramName, string? message = null)
+    internal static void ThrowArgumentNullException(string? paramName, string? message = null)
     {
         throw new ArgumentNullException(paramName, message);
     }
