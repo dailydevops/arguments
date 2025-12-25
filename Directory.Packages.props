@@ -19,6 +19,6 @@
     <PackageVersion Include="NetEvolve.Extensions.XUnit" Version="2.7.59" />
     <PackageVersion Include="Polyfill" Version="9.5.0" />
     <PackageVersion Include="TUnit" Version="1.6.28" />
-    <PackageVersion Include="Verify.TUnit" Version="31.9.0" />
+    <PackageVersion Include="Verify.TUnit" Version="31.9.1" />
   </ItemGroup>
 </Project>
