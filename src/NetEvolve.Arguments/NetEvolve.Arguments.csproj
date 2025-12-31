@@ -6,7 +6,7 @@
     <Title>$(MSBuildProjectName)</Title>
     <PackageProjectUrl>https://github.com/dailydevops/arguments</PackageProjectUrl>
     <RepositoryUrl>https://github.com/dailydevops/arguments.git</RepositoryUrl>
-    <PackageTags>guard;clausel;exceptions</PackageTags>
+    <PackageTags>guard;clause;exceptions;argument-validation;polyfill;null-check;parameter-validation;defensive-programming;argument-exception;argumentnullexception</PackageTags>
     <PackageReleaseNotes>$(PackageProjectUrl)/releases/</PackageReleaseNotes>
   </PropertyGroup>
 </Project>
