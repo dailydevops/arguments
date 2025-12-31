@@ -40,6 +40,16 @@ public static class ArgumentOutOfRangeExceptionPolyfills
         }
 #endif
 
+        /// <summary>Throws an <see cref="ArgumentOutOfRangeException" /> with a message indicating that a value must not be zero.</summary>
+        /// <param name="paramName">The name of the parameter with which the value corresponds.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Always thrown.</exception>
+        /// <remarks>
+        ///   <para>
+        ///     This is a helper method used internally by <see cref="ThrowIfZero{T}(T, string?)" />
+        ///     to throw an exception when a zero value is detected. The method is marked with
+        ///     <see cref="DoesNotReturnAttribute" /> to inform the compiler that it unconditionally throws.
+        ///   </para>
+        /// </remarks>
         [DoesNotReturn]
         private static void ThrowZero(string? paramName) =>
             throw new ArgumentOutOfRangeException(paramName, "Value must not be zero.");
@@ -92,6 +102,18 @@ public static class ArgumentOutOfRangeExceptionPolyfills
         }
 #endif
 
+        /// <summary>Throws an <see cref="ArgumentOutOfRangeException" /> with a message indicating that a value must be non-negative.</summary>
+        /// <typeparam name="T">The type of the value being validated.</typeparam>
+        /// <param name="value">The value that failed validation.</param>
+        /// <param name="paramName">The name of the parameter with which <paramref name="value" /> corresponds.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Always thrown.</exception>
+        /// <remarks>
+        ///   <para>
+        ///     This is a helper method used internally by <see cref="ThrowIfNegative{T}(T, string?)" />
+        ///     overloads to throw an exception when a negative value is detected. The method is marked with
+        ///     <see cref="DoesNotReturnAttribute" /> to inform the compiler that it unconditionally throws.
+        ///   </para>
+        /// </remarks>
         [DoesNotReturn]
         private static void ThrowNegative<T>(T value, string? paramName) =>
             throw new ArgumentOutOfRangeException(paramName, value, "Value must be non-negative.");
@@ -146,6 +168,22 @@ public static class ArgumentOutOfRangeExceptionPolyfills
         }
 #endif
 
+        /// <summary>Throws an <see cref="ArgumentOutOfRangeException" /> with a message indicating that a value must be non-negative and non-zero.</summary>
+        /// <typeparam name="T">The type of the value being validated.</typeparam>
+        /// <param name="value">The value that failed validation.</param>
+        /// <param name="name">The name of the parameter with which <paramref name="value" /> corresponds.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Always thrown.</exception>
+        /// <remarks>
+        ///   <para>
+        ///     This is a helper method used internally by the <see cref="ThrowNegativeOrZero{T}(T, string?)"/>
+        ///     overloads to throw an exception when a negative or zero value is detected. The method is marked with
+        ///     <see cref="DoesNotReturnAttribute" /> to inform the compiler that it unconditionally throws.
+        ///   </para>
+        ///   <para>
+        ///     The exception message includes the parameter name and the actual value that failed validation
+        ///     to provide detailed diagnostic information.
+        ///   </para>
+        /// </remarks>
         [DoesNotReturn]
         private static void ThrowNegativeOrZero<T>(T value, string? name) =>
             throw new ArgumentOutOfRangeException(
