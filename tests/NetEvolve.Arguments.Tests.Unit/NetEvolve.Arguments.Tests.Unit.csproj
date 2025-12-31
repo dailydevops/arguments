@@ -17,4 +17,12 @@
   <ItemGroup>
     <AssemblyAttribute Include="NetEvolve.Extensions.TUnit.UnitTestAttribute" />
   </ItemGroup>
+  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' and '$(PlatformTarget)' == 'x64' ">
+    <Platforms>x64</Platforms>
+    <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' and '$(PlatformTarget)' == 'x86' ">
+    <Platforms>x86</Platforms>
+    <RuntimeIdentifier>win10-x86</RuntimeIdentifier>
+  </PropertyGroup>
 </Project>
