@@ -9,11 +9,21 @@ A comprehensive library providing backward-compatible argument validation helper
 
 Modern .NET versions (starting with .NET 6) introduced streamlined argument validation methods such as `ArgumentNullException.ThrowIfNull` and `ArgumentOutOfRangeException.ThrowIfEqual`. However, projects targeting multiple frameworks or older .NET versions cannot utilize these convenient methods without conditional compilation or duplicated validation logic.
 
-**NetEvolve.Arguments** bridges this gap by providing polyfilled implementations of these modern validation methods, allowing developers to write consistent, maintainable argument validation code regardless of the target framework.
+**NetEvolve.Arguments** bridges this gap by providing full polyfill implementations via extension methods on `ArgumentNullException`, `ArgumentException`, and `ArgumentOutOfRangeException`. These polyfills enable the use of modern .NET API patterns across all supported frameworks, allowing developers to write consistent, maintainable argument validation code regardless of the target framework.
+
+### Polyfill Architecture
+
+The library provides polyfills through three main extension classes:
+
+- **`ArgumentNullExceptionPolyfills`**: Extends `ArgumentNullException` with `ThrowIfNull` methods
+- **`ArgumentExceptionPolyfills`**: Extends `ArgumentException` with `ThrowIfNullOrEmpty` and `ThrowIfNullOrWhiteSpace` methods
+- **`ArgumentOutOfRangeExceptionPolyfills`**: Extends `ArgumentOutOfRangeException` with range validation methods (`ThrowIfZero`, `ThrowIfNegative`, `ThrowIfEqual`, comparison methods, etc.)
+
+These polyfills are conditionally compiled and only active when targeting frameworks that don't provide the native implementations, ensuring zero overhead on modern .NET versions.
 
 ## Key Features
 
-- **Multi-Framework Support**: Compatible with .NET Standard 2.0, .NET 8.0, .NET 9.0, and .NET 10.0
+- **Multi-Framework Support**: Compatible with .NET Standard 2.0, .NET 6.0-10.0, and .NET Framework 4.7.2-4.8.1 (on Windows)
 - **Zero Runtime Overhead**: Uses conditional compilation to delegate to native implementations where available
 - **Drop-in Replacement**: Identical API signatures to native .NET implementations
 - **Type-Safe**: Fully generic implementations with proper type constraints
@@ -35,154 +45,233 @@ Install-Package NetEvolve.Arguments
 
 ## Usage
 
-Import the namespace in your code:
-
-```csharp
-using NetEvolve.Arguments;
-```
-
-Then use the validation methods just as you would with native .NET implementations:
+Simply use the validation methods directly on the exception types, just as you would with native .NET 8+ implementations:
 
 ```csharp
 public void ProcessData(string data, int count)
 {
-    Argument.ThrowIfNullOrWhiteSpace(data);
-    Argument.ThrowIfLessThan(count, 1);
+    ArgumentException.ThrowIfNullOrWhiteSpace(data);
+    ArgumentOutOfRangeException.ThrowIfLessThan(count, 1);
     
     // Your implementation
 }
 ```
 
+The polyfills are automatically available through extension methods when targeting older frameworks. No additional using directives are needed since the polyfills reside in the `System` namespace.
+
 ## Available Methods
 
 ### Null Validation
 
-#### `Argument.ThrowIfNull(object?, string?)`
+#### `ArgumentNullException.ThrowIfNull(object?, string?)`
 Throws an `ArgumentNullException` if the argument is `null`.
 
-**Replacement for**: [`ArgumentNullException.ThrowIfNull(object, string)`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception.throwifnull) (introduced in .NET 6)
+**Native API**: [`ArgumentNullException.ThrowIfNull`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception.throwifnull) (introduced in .NET 6)
+
+**Polyfill availability**: .NET Standard 2.0, .NET Framework 4.7.2-4.8.1
 
 **Example**:
 ```csharp
 public void Process(object data)
 {
-    Argument.ThrowIfNull(data);
+    ArgumentNullException.ThrowIfNull(data);
 }
 ```
 
-#### `Argument.ThrowIfNull(void*, string?)`
+#### `ArgumentNullException.ThrowIfNull(void*, string?)`
 Throws an `ArgumentNullException` if the pointer argument is `null`.
 
-**Replacement for**: [`ArgumentNullException.ThrowIfNull(void*, string)`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception.throwifnull?view=net-8.0#system-argumentnullexception-throwifnull(system-void*-system-string)) (introduced in .NET 7)
+**Native API**: [`ArgumentNullException.ThrowIfNull(void*)`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception.throwifnull?view=net-10.0#system-argumentnullexception-throwifnull(system-void*-system-string)) (introduced in .NET 7)
 
-#### `Argument.ThrowIfNullOrEmpty(string?, string?)`
+**Polyfill availability**: .NET Standard 2.0, .NET Framework 4.7.2-4.8.1, .NET 6.0
+
+**Example**:
+```csharp
+public unsafe void Process(void* pointer)
+{
+    ArgumentNullException.ThrowIfNull(pointer);
+}
+```
+
+#### `ArgumentException.ThrowIfNullOrEmpty(string?, string?)`
 Throws an `ArgumentNullException` if the argument is `null`, or an `ArgumentException` if the argument is an empty string.
 
-**Replacement for**: [`ArgumentException.ThrowIfNullOrEmpty(string, string)`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentexception.throwifnullorempty) (introduced in .NET 7)
+**Native API**: [`ArgumentException.ThrowIfNullOrEmpty`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentexception.throwifnullorempty) (introduced in .NET 7)
+
+**Polyfill availability**: .NET Standard 2.0, .NET Framework 4.7.2-4.8.1, .NET 6.0
 
 **Example**:
 ```csharp
 public void Process(string name)
 {
-    Argument.ThrowIfNullOrEmpty(name);
+    ArgumentException.ThrowIfNullOrEmpty(name);
 }
 ```
 
-#### `Argument.ThrowIfNullOrEmpty<T>(IEnumerable<T>?, string?)`
+#### `ArgumentException.ThrowIfNullOrEmpty<T>(IEnumerable<T>?, string?)`
 Throws an `ArgumentNullException` if the argument is `null`, or an `ArgumentException` if the collection is empty.
 
-**Note**: This is a custom extension method not present in the base .NET framework, providing convenient collection validation.
+**Note**: This is a custom extension method not present in the native .NET framework, providing convenient collection validation.
+
+**Availability**: All supported frameworks
 
 **Example**:
 ```csharp
 public void Process(IEnumerable<int> items)
 {
-    Argument.ThrowIfNullOrEmpty(items);
+    ArgumentException.ThrowIfNullOrEmpty(items);
 }
 ```
 
-#### `Argument.ThrowIfNullOrWhiteSpace(string?, string?)`
+#### `ArgumentException.ThrowIfNullOrWhiteSpace(string?, string?)`
 Throws an `ArgumentNullException` if the argument is `null`, or an `ArgumentException` if the argument is empty or contains only white-space characters.
 
-**Replacement for**: [`ArgumentException.ThrowIfNullOrWhiteSpace(string, string)`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentexception.throwifnullorwhitespace) (introduced in .NET 8)
+**Native API**: [`ArgumentException.ThrowIfNullOrWhiteSpace`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentexception.throwifnullorwhitespace) (introduced in .NET 8)
+
+**Polyfill availability**: .NET Standard 2.0, .NET Framework 4.7.2-4.8.1, .NET 6.0, .NET 7.0
 
 **Example**:
 ```csharp
 public void Process(string description)
 {
-    Argument.ThrowIfNullOrWhiteSpace(description);
+    ArgumentException.ThrowIfNullOrWhiteSpace(description);
 }
 ```
 
 ### Range Validation
 
-#### `Argument.ThrowIfEqual<T>(T, T, string?)`
-Throws an `ArgumentOutOfRangeException` if the first argument is equal to the second argument.
+#### `ArgumentOutOfRangeException.ThrowIfZero<T>(T, string?)`
+Throws an `ArgumentOutOfRangeException` if the argument is zero.
 
-**Replacement for**: [`ArgumentOutOfRangeException.ThrowIfEqual<T>(T, T, string)`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwifequal) (introduced in .NET 8)
+**Native API**: [`ArgumentOutOfRangeException.ThrowIfZero`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwifzero) (introduced in .NET 8)
 
-**Example**:
-```csharp
-public void SetValue(int value)
-{
-    Argument.ThrowIfEqual(value, 0); // Value must not be zero
-}
-```
-
-#### `Argument.ThrowIfNotEqual<T>(T, T, string?)`
-Throws an `ArgumentOutOfRangeException` if the first argument is not equal to the second argument.
-
-**Replacement for**: [`ArgumentOutOfRangeException.ThrowIfNotEqual<T>(T, T, string)`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwifnotequal) (introduced in .NET 8)
-
-#### `Argument.ThrowIfGreaterThan<T>(T, T, string?)`
-Throws an `ArgumentOutOfRangeException` if the first argument is greater than the second argument.
-
-**Replacement for**: [`ArgumentOutOfRangeException.ThrowIfGreaterThan<T>(T, T, string)`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwifgreaterthan) (introduced in .NET 8)
+**Polyfill availability**: .NET Standard 2.0, .NET Framework 4.7.2-4.8.1, .NET 6.0, .NET 7.0
 
 **Example**:
 ```csharp
-public void SetAge(int age)
+public void SetDivisor(int divisor)
 {
-    Argument.ThrowIfGreaterThan(age, 150); // Age must be 150 or less
+    ArgumentOutOfRangeException.ThrowIfZero(divisor);
 }
 ```
 
-#### `Argument.ThrowIfGreaterThanOrEqual<T>(T, T, string?)`
-Throws an `ArgumentOutOfRangeException` if the first argument is greater than or equal to the second argument.
+#### `ArgumentOutOfRangeException.ThrowIfNegative<T>(T, string?)`
+Throws an `ArgumentOutOfRangeException` if the argument is negative.
 
-**Replacement for**: [`ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual<T>(T, T, string)`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwifgreaterthanorequal) (introduced in .NET 8)
+**Native API**: [`ArgumentOutOfRangeException.ThrowIfNegative`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwifnegative) (introduced in .NET 8)
 
-**Example**:
-```csharp
-public void SetCount(int count, int maximum)
-{
-    Argument.ThrowIfGreaterThanOrEqual(count, maximum); // Count must be less than maximum
-}
-```
-
-#### `Argument.ThrowIfLessThan<T>(T, T, string?)`
-Throws an `ArgumentOutOfRangeException` if the first argument is less than the second argument.
-
-**Replacement for**: [`ArgumentOutOfRangeException.ThrowIfLessThan<T>(T, T, string)`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwiflessthan) (introduced in .NET 8)
+**Polyfill availability**: .NET Standard 2.0, .NET Framework 4.7.2-4.8.1, .NET 6.0, .NET 7.0
 
 **Example**:
 ```csharp
 public void SetCount(int count)
 {
-    Argument.ThrowIfLessThan(count, 1); // Count must be at least 1
+    ArgumentOutOfRangeException.ThrowIfNegative(count);
 }
 ```
 
-#### `Argument.ThrowIfLessThanOrEqual<T>(T, T, string?)`
+#### `ArgumentOutOfRangeException.ThrowIfNegativeOrZero<T>(T, string?)`
+Throws an `ArgumentOutOfRangeException` if the argument is negative or zero.
+
+**Native API**: [`ArgumentOutOfRangeException.ThrowIfNegativeOrZero`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwifnegativeorzero) (introduced in .NET 8)
+
+**Polyfill availability**: .NET Standard 2.0, .NET Framework 4.7.2-4.8.1, .NET 6.0, .NET 7.0
+
+**Example**:
+```csharp
+public void SetQuantity(int quantity)
+{
+    ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantity);
+}
+```
+
+#### `ArgumentOutOfRangeException.ThrowIfEqual<T>(T, T, string?)`
+Throws an `ArgumentOutOfRangeException` if the first argument is equal to the second argument.
+
+**Native API**: [`ArgumentOutOfRangeException.ThrowIfEqual`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwifequal) (introduced in .NET 8)
+
+**Polyfill availability**: .NET Standard 2.0, .NET Framework 4.7.2-4.8.1, .NET 6.0, .NET 7.0
+
+**Example**:
+```csharp
+public void SetValue(int value)
+{
+    ArgumentOutOfRangeException.ThrowIfEqual(value, 0); // Value must not be zero
+}
+```
+
+#### `ArgumentOutOfRangeException.ThrowIfNotEqual<T>(T, T, string?)`
+Throws an `ArgumentOutOfRangeException` if the first argument is not equal to the second argument.
+
+**Native API**: [`ArgumentOutOfRangeException.ThrowIfNotEqual`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwifnotequal) (introduced in .NET 8)
+
+**Polyfill availability**: .NET Standard 2.0, .NET Framework 4.7.2-4.8.1, .NET 6.0, .NET 7.0
+
+**Example**:
+```csharp
+public void ValidateConstant(int value)
+{
+    ArgumentOutOfRangeException.ThrowIfNotEqual(value, 42); // Value must be exactly 42
+}
+```
+
+#### `ArgumentOutOfRangeException.ThrowIfGreaterThan<T>(T, T, string?)`
+Throws an `ArgumentOutOfRangeException` if the first argument is greater than the second argument.
+
+**Native API**: [`ArgumentOutOfRangeException.ThrowIfGreaterThan`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwifgreaterthan) (introduced in .NET 8)
+
+**Polyfill availability**: .NET Standard 2.0, .NET Framework 4.7.2-4.8.1, .NET 6.0, .NET 7.0
+
+**Example**:
+```csharp
+public void SetAge(int age)
+{
+    ArgumentOutOfRangeException.ThrowIfGreaterThan(age, 150); // Age must be 150 or less
+}
+```
+
+#### `ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual<T>(T, T, string?)`
+Throws an `ArgumentOutOfRangeException` if the first argument is greater than or equal to the second argument.
+
+**Native API**: [`ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwifgreaterthanorequal) (introduced in .NET 8)
+
+**Polyfill availability**: .NET Standard 2.0, .NET Framework 4.7.2-4.8.1, .NET 6.0, .NET 7.0
+
+**Example**:
+```csharp
+public void SetCount(int count, int maximum)
+{
+    ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(count, maximum); // Count must be less than maximum
+}
+```
+
+#### `ArgumentOutOfRangeException.ThrowIfLessThan<T>(T, T, string?)`
+Throws an `ArgumentOutOfRangeException` if the first argument is less than the second argument.
+
+**Native API**: [`ArgumentOutOfRangeException.ThrowIfLessThan`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwiflessthan) (introduced in .NET 8)
+
+**Polyfill availability**: .NET Standard 2.0, .NET Framework 4.7.2-4.8.1, .NET 6.0, .NET 7.0
+
+**Example**:
+```csharp
+public void SetCount(int count)
+{
+    ArgumentOutOfRangeException.ThrowIfLessThan(count, 1); // Count must be at least 1
+}
+```
+
+#### `ArgumentOutOfRangeException.ThrowIfLessThanOrEqual<T>(T, T, string?)`
 Throws an `ArgumentOutOfRangeException` if the first argument is less than or equal to the second argument.
 
-**Replacement for**: [`ArgumentOutOfRangeException.ThrowIfLessThanOrEqual<T>(T, T, string)`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwiflessthanorequal) (introduced in .NET 8)
+**Native API**: [`ArgumentOutOfRangeException.ThrowIfLessThanOrEqual`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwiflessthanorequal) (introduced in .NET 8)
+
+**Polyfill availability**: .NET Standard 2.0, .NET Framework 4.7.2-4.8.1, .NET 6.0, .NET 7.0
 
 **Example**:
 ```csharp
 public void SetMinimum(int value, int threshold)
 {
-    Argument.ThrowIfLessThanOrEqual(value, threshold); // Value must be greater than threshold
+    ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(value, threshold); // Value must be greater than threshold
 }
 ```
 
@@ -191,6 +280,11 @@ public void SetMinimum(int value, int threshold)
 | Target Framework | Status | Notes |
 |-----------------|--------|-------|
 | .NET Standard 2.0 | ✅ Supported | Full polyfill implementations |
+| .NET Framework 4.7.2 | ✅ Supported | Windows only, full polyfill implementations |
+| .NET Framework 4.8 | ✅ Supported | Windows only, full polyfill implementations |
+| .NET Framework 4.8.1 | ✅ Supported | Windows only, full polyfill implementations |
+| .NET 6.0 | ✅ Supported | Delegates to native implementations where available |
+| .NET 7.0 | ✅ Supported | Delegates to native implementations where available |
 | .NET 8.0 | ✅ Supported | Delegates to native implementations where available |
 | .NET 9.0 | ✅ Supported | Full native delegation |
 | .NET 10.0 | ✅ Supported | Full native delegation |
