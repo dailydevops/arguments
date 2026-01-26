@@ -331,5 +331,166 @@ public static class ArgumentOutOfRangeExceptionPolyfills
             }
         }
 #endif
+
+        /// <summary>Throws an <see cref="ArgumentOutOfRangeException"/> if <paramref name="value"/> is outside the specified range [<paramref name="min"/>, <paramref name="max"/>].</summary>
+        /// <typeparam name="T">The type of the objects to compare.</typeparam>
+        /// <param name="value">The argument to validate as within the range.</param>
+        /// <param name="min">The minimum allowed value (inclusive).</param>
+        /// <param name="max">The maximum allowed value (inclusive).</param>
+        /// <param name="paramName">The name of the parameter with which <paramref name="value"/> corresponds.</param>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="value"/> is outside the range [<paramref name="min"/>, <paramref name="max"/>].</exception>
+        public static void ThrowIfOutOfRange<T>(
+            T value,
+            T min,
+            T max,
+            [Runtime.CompilerServices.CallerArgumentExpression(nameof(value))] string? paramName = null
+        )
+            where T : IComparable<T>
+        {
+            if (value.CompareTo(min) < 0 || value.CompareTo(max) > 0)
+            {
+                throw new ArgumentOutOfRangeException(
+                    paramName,
+                    value,
+                    $"Value must be between {min} and {max} (inclusive)."
+                );
+            }
+        }
+
+#if NET8_0_OR_GREATER
+        /// <summary>Throws an <see cref="ArgumentOutOfRangeException"/> if <paramref name="value"/> is in the past relative to the current time.</summary>
+        /// <param name="value">The <see cref="DateTimeOffset"/> argument to validate as not in the past.</param>
+        /// <param name="timeProvider">The time provider to use for getting the current time. If <see langword="null"/>, <see cref="TimeProvider.System"/> is used.</param>
+        /// <param name="paramName">The name of the parameter with which <paramref name="value"/> corresponds.</param>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="value"/> is in the past.</exception>
+        public static void ThrowIfInPast(
+            DateTimeOffset value,
+            TimeProvider? timeProvider = null,
+            [Runtime.CompilerServices.CallerArgumentExpression(nameof(value))] string? paramName = null
+        )
+        {
+            var now = (timeProvider ?? TimeProvider.System).GetUtcNow();
+            if (value < now)
+            {
+                throw new ArgumentOutOfRangeException(
+                    paramName,
+                    value,
+                    $"Value must not be in the past. Current time: {now}."
+                );
+            }
+        }
+
+        /// <summary>Throws an <see cref="ArgumentOutOfRangeException"/> if <paramref name="value"/> is in the future relative to the current time.</summary>
+        /// <param name="value">The <see cref="DateTimeOffset"/> argument to validate as not in the future.</param>
+        /// <param name="timeProvider">The time provider to use for getting the current time. If <see langword="null"/>, <see cref="TimeProvider.System"/> is used.</param>
+        /// <param name="paramName">The name of the parameter with which <paramref name="value"/> corresponds.</param>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="value"/> is in the future.</exception>
+        public static void ThrowIfInFuture(
+            DateTimeOffset value,
+            TimeProvider? timeProvider = null,
+            [Runtime.CompilerServices.CallerArgumentExpression(nameof(value))] string? paramName = null
+        )
+        {
+            var now = (timeProvider ?? TimeProvider.System).GetUtcNow();
+            if (value > now)
+            {
+                throw new ArgumentOutOfRangeException(
+                    paramName,
+                    value,
+                    $"Value must not be in the future. Current time: {now}."
+                );
+            }
+        }
+
+        /// <summary>Throws an <see cref="ArgumentOutOfRangeException"/> if <paramref name="value"/> is in the past relative to the current time.</summary>
+        /// <param name="value">The <see cref="DateTime"/> argument to validate as not in the past.</param>
+        /// <param name="timeProvider">The time provider to use for getting the current time. If <see langword="null"/>, <see cref="TimeProvider.System"/> is used.</param>
+        /// <param name="paramName">The name of the parameter with which <paramref name="value"/> corresponds.</param>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="value"/> is in the past.</exception>
+        public static void ThrowIfInPast(
+            DateTime value,
+            TimeProvider? timeProvider = null,
+            [Runtime.CompilerServices.CallerArgumentExpression(nameof(value))] string? paramName = null
+        )
+        {
+            var now = (timeProvider ?? TimeProvider.System).GetUtcNow().UtcDateTime;
+            if (value < now)
+            {
+                throw new ArgumentOutOfRangeException(
+                    paramName,
+                    value,
+                    $"Value must not be in the past. Current time: {now}."
+                );
+            }
+        }
+
+        /// <summary>Throws an <see cref="ArgumentOutOfRangeException"/> if <paramref name="value"/> is in the future relative to the current time.</summary>
+        /// <param name="value">The <see cref="DateTime"/> argument to validate as not in the future.</param>
+        /// <param name="timeProvider">The time provider to use for getting the current time. If <see langword="null"/>, <see cref="TimeProvider.System"/> is used.</param>
+        /// <param name="paramName">The name of the parameter with which <paramref name="value"/> corresponds.</param>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="value"/> is in the future.</exception>
+        public static void ThrowIfInFuture(
+            DateTime value,
+            TimeProvider? timeProvider = null,
+            [Runtime.CompilerServices.CallerArgumentExpression(nameof(value))] string? paramName = null
+        )
+        {
+            var now = (timeProvider ?? TimeProvider.System).GetUtcNow().UtcDateTime;
+            if (value > now)
+            {
+                throw new ArgumentOutOfRangeException(
+                    paramName,
+                    value,
+                    $"Value must not be in the future. Current time: {now}."
+                );
+            }
+        }
+#endif
+
+#if NET8_0_OR_GREATER
+        /// <summary>Throws an <see cref="ArgumentOutOfRangeException"/> if <paramref name="value"/> is in the past relative to the current date.</summary>
+        /// <param name="value">The <see cref="DateOnly"/> argument to validate as not in the past.</param>
+        /// <param name="timeProvider">The time provider to use for getting the current date. If <see langword="null"/>, <see cref="TimeProvider.System"/> is used.</param>
+        /// <param name="paramName">The name of the parameter with which <paramref name="value"/> corresponds.</param>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="value"/> is in the past.</exception>
+        public static void ThrowIfInPast(
+            DateOnly value,
+            TimeProvider? timeProvider = null,
+            [Runtime.CompilerServices.CallerArgumentExpression(nameof(value))] string? paramName = null
+        )
+        {
+            var today = DateOnly.FromDateTime((timeProvider ?? TimeProvider.System).GetUtcNow().UtcDateTime);
+            if (value < today)
+            {
+                throw new ArgumentOutOfRangeException(
+                    paramName,
+                    value,
+                    $"Value must not be in the past. Current date: {today}."
+                );
+            }
+        }
+
+        /// <summary>Throws an <see cref="ArgumentOutOfRangeException"/> if <paramref name="value"/> is in the future relative to the current date.</summary>
+        /// <param name="value">The <see cref="DateOnly"/> argument to validate as not in the future.</param>
+        /// <param name="timeProvider">The time provider to use for getting the current date. If <see langword="null"/>, <see cref="TimeProvider.System"/> is used.</param>
+        /// <param name="paramName">The name of the parameter with which <paramref name="value"/> corresponds.</param>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="value"/> is in the future.</exception>
+        public static void ThrowIfInFuture(
+            DateOnly value,
+            TimeProvider? timeProvider = null,
+            [Runtime.CompilerServices.CallerArgumentExpression(nameof(value))] string? paramName = null
+        )
+        {
+            var today = DateOnly.FromDateTime((timeProvider ?? TimeProvider.System).GetUtcNow().UtcDateTime);
+            if (value > today)
+            {
+                throw new ArgumentOutOfRangeException(
+                    paramName,
+                    value,
+                    $"Value must not be in the future. Current date: {today}."
+                );
+            }
+        }
+#endif
     }
 }

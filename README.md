@@ -1,304 +1,261 @@
-# NetEvolve.Arguments
+# Arguments
 
-[![License](https://img.shields.io/github/license/dailydevops/arguments)](LICENSE)
-[![Build Status](https://github.com/dailydevops/arguments/actions/workflows/build.yml/badge.svg)](https://github.com/dailydevops/arguments/actions)
+[![License](https://img.shields.io/github/license/dailydevops/arguments.svg)](https://github.com/dailydevops/arguments/blob/main/LICENSE)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/dailydevops/arguments/ci.yml?branch=main)](https://github.com/dailydevops/arguments/actions)
+[![NuGet](https://img.shields.io/nuget/v/NetEvolve.Arguments.svg)](https://www.nuget.org/packages/NetEvolve.Arguments/)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/NetEvolve.Arguments.svg)](https://www.nuget.org/packages/NetEvolve.Arguments/)
+[![Contributors](https://img.shields.io/github/contributors/dailydevops/arguments.svg)](https://github.com/dailydevops/arguments/graphs/contributors)
 
-A comprehensive library providing backward-compatible argument validation helper methods (`ThrowIf*`) for .NET projects targeting multiple framework versions. This library enables modern argument validation patterns across legacy and current .NET runtimes, ensuring code consistency and maintainability.
+A universal polyfill library that provides modern `ArgumentNullException.ThrowIf*` and `ArgumentException.ThrowIf*` helper methods across all .NET runtimes (.NET Standard 2.0+, .NET Framework 4.6.2+, .NET 6.0+), enabling consistent argument validation patterns regardless of target framework version.
 
 ## Overview
 
-Modern .NET versions (starting with .NET 6) introduced streamlined argument validation methods such as `ArgumentNullException.ThrowIfNull` and `ArgumentOutOfRangeException.ThrowIfEqual`. However, projects targeting multiple frameworks or older .NET versions cannot utilize these convenient methods without conditional compilation or duplicated validation logic.
+NetEvolve.Arguments brings modern .NET argument validation APIs to legacy frameworks, allowing you to write consistent defensive programming code across all supported .NET platforms. The library polyfills the `ThrowIfNull`, `ThrowIfNullOrEmpty`, `ThrowIfNullOrWhiteSpace`, and comparison-based validation methods that were introduced in later .NET versions, making them available to projects targeting older frameworks.
 
-**NetEvolve.Arguments** bridges this gap by providing full polyfill implementations via extension methods on `ArgumentNullException`, `ArgumentException`, and `ArgumentOutOfRangeException`. These polyfills enable the use of modern .NET API patterns across all supported frameworks, allowing developers to write consistent, maintainable argument validation code regardless of the target framework.
+This solution provides a single, focused library designed to:
 
-### Polyfill Architecture
+- **Enable modern code patterns**: Write modern argument validation code that works on .NET Framework 4.6.2 through .NET 10.0
+- **Maintain consistency**: Use the same API surface across all target frameworks without conditional compilation
+- **Simplify maintenance**: Replace verbose manual null checks and validation logic with concise, expressive helper methods
+- **Improve code quality**: Apply defensive programming practices consistently throughout your codebase
 
-The library provides polyfills through three main extension classes:
+## Projects
 
-- **`ArgumentNullExceptionPolyfills`**: Extends `ArgumentNullException` with `ThrowIfNull` methods
-- **`ArgumentExceptionPolyfills`**: Extends `ArgumentException` with `ThrowIfNullOrEmpty` and `ThrowIfNullOrWhiteSpace` methods
-- **`ArgumentOutOfRangeExceptionPolyfills`**: Extends `ArgumentOutOfRangeException` with range validation methods (`ThrowIfZero`, `ThrowIfNegative`, `ThrowIfEqual`, comparison methods, etc.)
+### Core Library
 
-These polyfills are conditionally compiled and only active when targeting frameworks that don't provide the native implementations, ensuring zero overhead on modern .NET versions.
+- **NetEvolve.Arguments** - The main polyfill library providing argument validation helper methods for:
+  - Null checking (`ThrowIfNull`)
+  - Empty/whitespace validation (`ThrowIfNullOrEmpty`, `ThrowIfNullOrWhiteSpace`)
+  - Equality validation (`ThrowIfEqual`, `ThrowIfNotEqual`)
+  - Comparison validation (`ThrowIfGreaterThan`, `ThrowIfGreaterThanOrEqual`, `ThrowIfLessThan`, `ThrowIfLessThanOrEqual`)
+  - Object disposal validation (`ObjectDisposedException.ThrowIf`)
 
-## Key Features
+### Tests
 
-- **Multi-Framework Support**: Compatible with .NET Standard 2.0, .NET 6.0-10.0, and .NET Framework 4.7.2-4.8.1 (on Windows)
-- **Zero Runtime Overhead**: Uses conditional compilation to delegate to native implementations where available
-- **Drop-in Replacement**: Identical API signatures to native .NET implementations
-- **Type-Safe**: Fully generic implementations with proper type constraints
-- **Comprehensive Coverage**: Includes null checks, range validations, and equality comparisons
+- **NetEvolve.Arguments.Tests.Unit** - Comprehensive unit tests covering all validation methods across all target frameworks
 
-## Installation
+## Features
 
-Install the package via NuGet Package Manager:
+- **Universal compatibility** - Supports .NET Standard 2.0+, .NET Framework 4.6.2, 4.7.2, 4.8, 4.8.1, and .NET 6.0 through 10.0
+- **Modern API surface** - Provides the same helper methods available in .NET 6+ to all target frameworks
+- **Zero overhead** - On frameworks where native implementations exist, the polyfills are compiled out
+- **Type-safe validation** - Generic and specialized overloads for common scenarios including pointers and spans
+- **Performance optimized** - Minimal allocations and optimized code paths for each target framework
+- **Comprehensive testing** - Extensive unit test coverage across all supported frameworks
+
+## Getting Started
+
+### Prerequisites
+
+- [.NET SDK 10.0](https://dotnet.microsoft.com/download) or higher for building the solution
+- [Git](https://git-scm.com/) for version control
+- [Visual Studio 2022](https://visualstudio.microsoft.com/) or [Visual Studio Code](https://code.visualstudio.com/) (recommended)
+
+### Installation
+
+Add the NuGet package to your project:
 
 ```bash
 dotnet add package NetEvolve.Arguments
 ```
 
-Or via the Package Manager Console:
+Or via Package Manager Console:
 
 ```powershell
 Install-Package NetEvolve.Arguments
 ```
 
-## Usage
+Or add directly to your `.csproj` file:
 
-Simply use the validation methods directly on the exception types, just as you would with native .NET 8+ implementations:
-
-```csharp
-public void ProcessData(string data, int count)
-{
-    ArgumentException.ThrowIfNullOrWhiteSpace(data);
-    ArgumentOutOfRangeException.ThrowIfLessThan(count, 1);
-    
-    // Your implementation
-}
+```xml
+<ItemGroup>
+  <PackageReference Include="NetEvolve.Arguments" />
+</ItemGroup>
 ```
 
-The polyfills are automatically available through extension methods when targeting older frameworks. No additional using directives are needed since the polyfills reside in the `System` namespace.
+> [!NOTE]
+> This project uses Centralized Package Version Management. When adding the package reference, omit the `Version` attribute - versions are managed centrally in [Directory.Packages.props](https://github.com/dailydevops/arguments/blob/main/Directory.Packages.props).
 
-## Available Methods
+### Usage Examples
 
-### Null Validation
+**Null validation:**
 
-#### `ArgumentNullException.ThrowIfNull(object?, string?)`
-Throws an `ArgumentNullException` if the argument is `null`.
-
-**Native API**: [`ArgumentNullException.ThrowIfNull`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception.throwifnull) (introduced in .NET 6)
-
-**Polyfill availability**: .NET Standard 2.0, .NET Framework 4.7.2-4.8.1
-
-**Example**:
 ```csharp
-public void Process(object data)
+using System;
+
+public void ProcessData(string data)
 {
     ArgumentNullException.ThrowIfNull(data);
+    // Process data safely
 }
 ```
 
-#### `ArgumentNullException.ThrowIfNull(void*, string?)`
-Throws an `ArgumentNullException` if the pointer argument is `null`.
+**Empty/whitespace validation:**
 
-**Native API**: [`ArgumentNullException.ThrowIfNull(void*)`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception.throwifnull?view=net-10.0#system-argumentnullexception-throwifnull(system-void*-system-string)) (introduced in .NET 7)
-
-**Polyfill availability**: .NET Standard 2.0, .NET Framework 4.7.2-4.8.1, .NET 6.0
-
-**Example**:
 ```csharp
-public unsafe void Process(void* pointer)
+using System;
+
+public void ValidateInput(string input)
 {
-    ArgumentNullException.ThrowIfNull(pointer);
+    ArgumentException.ThrowIfNullOrEmpty(input);
+    ArgumentException.ThrowIfNullOrWhiteSpace(input);
+    // Input is guaranteed to have content
 }
 ```
 
-#### `ArgumentException.ThrowIfNullOrEmpty(string?, string?)`
-Throws an `ArgumentNullException` if the argument is `null`, or an `ArgumentException` if the argument is an empty string.
+**Comparison validation:**
 
-**Native API**: [`ArgumentException.ThrowIfNullOrEmpty`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentexception.throwifnullorempty) (introduced in .NET 7)
-
-**Polyfill availability**: .NET Standard 2.0, .NET Framework 4.7.2-4.8.1, .NET 6.0
-
-**Example**:
 ```csharp
-public void Process(string name)
+using System;
+
+public void SetTimeout(int milliseconds)
 {
-    ArgumentException.ThrowIfNullOrEmpty(name);
+    ArgumentOutOfRangeException.ThrowIfNegative(milliseconds);
+    ArgumentOutOfRangeException.ThrowIfGreaterThan(milliseconds, 60000);
+    // Timeout is between 0 and 60000
 }
 ```
 
-#### `ArgumentException.ThrowIfNullOrEmpty<T>(IEnumerable<T>?, string?)`
-Throws an `ArgumentNullException` if the argument is `null`, or an `ArgumentException` if the collection is empty.
+**Object disposal validation:**
 
-**Note**: This is a custom extension method not present in the native .NET framework, providing convenient collection validation.
-
-**Availability**: All supported frameworks
-
-**Example**:
 ```csharp
-public void Process(IEnumerable<int> items)
+using System;
+
+public class MyDisposable : IDisposable
 {
-    ArgumentException.ThrowIfNullOrEmpty(items);
+    private bool _disposed;
+
+    public void DoWork()
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        // Safe to perform work
+    }
+
+    public void Dispose() => _disposed = true;
 }
 ```
 
-#### `ArgumentException.ThrowIfNullOrWhiteSpace(string?, string?)`
-Throws an `ArgumentNullException` if the argument is `null`, or an `ArgumentException` if the argument is empty or contains only white-space characters.
+## Development
 
-**Native API**: [`ArgumentException.ThrowIfNullOrWhiteSpace`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentexception.throwifnullorwhitespace) (introduced in .NET 8)
+### Building
 
-**Polyfill availability**: .NET Standard 2.0, .NET Framework 4.7.2-4.8.1, .NET 6.0, .NET 7.0
+Clone the repository and build the solution:
 
-**Example**:
-```csharp
-public void Process(string description)
-{
-    ArgumentException.ThrowIfNullOrWhiteSpace(description);
-}
+```bash
+git clone https://github.com/dailydevops/arguments.git
+cd arguments
+dotnet restore
+dotnet build
 ```
 
-### Range Validation
+### Running Tests
 
-#### `ArgumentOutOfRangeException.ThrowIfZero<T>(T, string?)`
-Throws an `ArgumentOutOfRangeException` if the argument is zero.
+Run all tests across all target frameworks:
 
-**Native API**: [`ArgumentOutOfRangeException.ThrowIfZero`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwifzero) (introduced in .NET 8)
-
-**Polyfill availability**: .NET Standard 2.0, .NET Framework 4.7.2-4.8.1, .NET 6.0, .NET 7.0
-
-**Example**:
-```csharp
-public void SetDivisor(int divisor)
-{
-    ArgumentOutOfRangeException.ThrowIfZero(divisor);
-}
+```bash
+dotnet test
 ```
 
-#### `ArgumentOutOfRangeException.ThrowIfNegative<T>(T, string?)`
-Throws an `ArgumentOutOfRangeException` if the argument is negative.
+Run tests for a specific project:
 
-**Native API**: [`ArgumentOutOfRangeException.ThrowIfNegative`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwifnegative) (introduced in .NET 8)
-
-**Polyfill availability**: .NET Standard 2.0, .NET Framework 4.7.2-4.8.1, .NET 6.0, .NET 7.0
-
-**Example**:
-```csharp
-public void SetCount(int count)
-{
-    ArgumentOutOfRangeException.ThrowIfNegative(count);
-}
+```bash
+dotnet test tests/NetEvolve.Arguments.Tests.Unit
 ```
 
-#### `ArgumentOutOfRangeException.ThrowIfNegativeOrZero<T>(T, string?)`
-Throws an `ArgumentOutOfRangeException` if the argument is negative or zero.
+### Code Formatting
 
-**Native API**: [`ArgumentOutOfRangeException.ThrowIfNegativeOrZero`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwifnegativeorzero) (introduced in .NET 8)
+This project uses [CSharpier](https://csharpier.com/) for consistent code formatting:
 
-**Polyfill availability**: .NET Standard 2.0, .NET Framework 4.7.2-4.8.1, .NET 6.0, .NET 7.0
-
-**Example**:
-```csharp
-public void SetQuantity(int quantity)
-{
-    ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantity);
-}
+```bash
+dotnet csharpier format .
 ```
 
-#### `ArgumentOutOfRangeException.ThrowIfEqual<T>(T, T, string?)`
-Throws an `ArgumentOutOfRangeException` if the first argument is equal to the second argument.
+Code formatting is automatically enforced during builds via the `CSharpier.MSBuild` package.
 
-**Native API**: [`ArgumentOutOfRangeException.ThrowIfEqual`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwifequal) (introduced in .NET 8)
+### Project Structure
 
-**Polyfill availability**: .NET Standard 2.0, .NET Framework 4.7.2-4.8.1, .NET 6.0, .NET 7.0
+```txt
+src/
+└── NetEvolve.Arguments/                            # Main polyfill library
+    ├── Argument*.cs                                # Obsolete implementations
+    ├── ArgumentExceptionPolyfill.cs                # Polyfill implementations
+    ├── ArgumentNullExceptionPolyfills.cs           # Polyfill implementations
+    ├── ArgumentOutOfRangeExceptionPolyfills.cs     # Polyfill implementations
+    └── ObjectDisposedExceptionPolyfills.cs         # Polyfill implementations
 
-**Example**:
-```csharp
-public void SetValue(int value)
-{
-    ArgumentOutOfRangeException.ThrowIfEqual(value, 0); // Value must not be zero
-}
+tests/
+└── NetEvolve.Arguments.Tests.Unit/                 # Comprehensive unit tests
+
+decisions/                                          # Architecture Decision Records (ADRs)
+templates/                                          # Documentation templates
 ```
 
-#### `ArgumentOutOfRangeException.ThrowIfNotEqual<T>(T, T, string?)`
-Throws an `ArgumentOutOfRangeException` if the first argument is not equal to the second argument.
+## Architecture
 
-**Native API**: [`ArgumentOutOfRangeException.ThrowIfNotEqual`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwifnotequal) (introduced in .NET 8)
+This library follows a polyfill architecture pattern:
 
-**Polyfill availability**: .NET Standard 2.0, .NET Framework 4.7.2-4.8.1, .NET 6.0, .NET 7.0
+- **Conditional compilation**: Uses preprocessor directives to provide native implementations where available and polyfills where needed
+- **Framework detection**: Automatically detects target framework capabilities at compile time
+- **Zero-overhead abstraction**: On modern frameworks, the polyfills compile to simple pass-through calls or are eliminated entirely
+- **Backward compatibility**: Ensures older frameworks receive functionally equivalent implementations
 
-**Example**:
-```csharp
-public void ValidateConstant(int value)
-{
-    ArgumentOutOfRangeException.ThrowIfNotEqual(value, 42); // Value must be exactly 42
-}
-```
+For detailed architectural decisions, see:
 
-#### `ArgumentOutOfRangeException.ThrowIfGreaterThan<T>(T, T, string?)`
-Throws an `ArgumentOutOfRangeException` if the first argument is greater than the second argument.
-
-**Native API**: [`ArgumentOutOfRangeException.ThrowIfGreaterThan`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwifgreaterthan) (introduced in .NET 8)
-
-**Polyfill availability**: .NET Standard 2.0, .NET Framework 4.7.2-4.8.1, .NET 6.0, .NET 7.0
-
-**Example**:
-```csharp
-public void SetAge(int age)
-{
-    ArgumentOutOfRangeException.ThrowIfGreaterThan(age, 150); // Age must be 150 or less
-}
-```
-
-#### `ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual<T>(T, T, string?)`
-Throws an `ArgumentOutOfRangeException` if the first argument is greater than or equal to the second argument.
-
-**Native API**: [`ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwifgreaterthanorequal) (introduced in .NET 8)
-
-**Polyfill availability**: .NET Standard 2.0, .NET Framework 4.7.2-4.8.1, .NET 6.0, .NET 7.0
-
-**Example**:
-```csharp
-public void SetCount(int count, int maximum)
-{
-    ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(count, maximum); // Count must be less than maximum
-}
-```
-
-#### `ArgumentOutOfRangeException.ThrowIfLessThan<T>(T, T, string?)`
-Throws an `ArgumentOutOfRangeException` if the first argument is less than the second argument.
-
-**Native API**: [`ArgumentOutOfRangeException.ThrowIfLessThan`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwiflessthan) (introduced in .NET 8)
-
-**Polyfill availability**: .NET Standard 2.0, .NET Framework 4.7.2-4.8.1, .NET 6.0, .NET 7.0
-
-**Example**:
-```csharp
-public void SetCount(int count)
-{
-    ArgumentOutOfRangeException.ThrowIfLessThan(count, 1); // Count must be at least 1
-}
-```
-
-#### `ArgumentOutOfRangeException.ThrowIfLessThanOrEqual<T>(T, T, string?)`
-Throws an `ArgumentOutOfRangeException` if the first argument is less than or equal to the second argument.
-
-**Native API**: [`ArgumentOutOfRangeException.ThrowIfLessThanOrEqual`](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception.throwiflessthanorequal) (introduced in .NET 8)
-
-**Polyfill availability**: .NET Standard 2.0, .NET Framework 4.7.2-4.8.1, .NET 6.0, .NET 7.0
-
-**Example**:
-```csharp
-public void SetMinimum(int value, int threshold)
-{
-    ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(value, threshold); // Value must be greater than threshold
-}
-```
-
-## Framework Compatibility
-
-| Target Framework | Status | Notes |
-|-----------------|--------|-------|
-| .NET Standard 2.0 | ✅ Supported | Full polyfill implementations |
-| .NET Framework 4.7.2 | ✅ Supported | Windows only, full polyfill implementations |
-| .NET Framework 4.8 | ✅ Supported | Windows only, full polyfill implementations |
-| .NET Framework 4.8.1 | ✅ Supported | Windows only, full polyfill implementations |
-| .NET 6.0 | ✅ Supported | Delegates to native implementations where available |
-| .NET 7.0 | ✅ Supported | Delegates to native implementations where available |
-| .NET 8.0 | ✅ Supported | Delegates to native implementations where available |
-| .NET 9.0 | ✅ Supported | Full native delegation |
-| .NET 10.0 | ✅ Supported | Full native delegation |
+- [Centralized Package Version Management](https://github.com/dailydevops/arguments/blob/main/decisions/2025-07-10-centralized-package-version-management.md)
+- [Conventional Commits](https://github.com/dailydevops/arguments/blob/main/decisions/2025-07-10-conventional-commits.md)
+- [GitVersion for Automated Semantic Versioning](https://github.com/dailydevops/arguments/blob/main/decisions/2025-07-10-gitversion-automated-semantic-versioning.md)
+- [.NET 10 and C# 13 Adoption](https://github.com/dailydevops/arguments/blob/main/decisions/2025-07-11-dotnet-10-csharp-13-adoption.md)
+- [English as Project Language](https://github.com/dailydevops/arguments/blob/main/decisions/2025-07-11-english-as-project-language.md)
+- [DateTimeOffset and TimeProvider Usage](https://github.com/dailydevops/arguments/blob/main/decisions/2026-01-21-datetimeoffset-and-timeprovider-usage.md)
+- [All Architecture Decision Records](https://github.com/dailydevops/arguments/tree/main/decisions/)
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit issues, fork the repository, and create pull requests.
+We welcome contributions from the community! Please read our [Contributing Guidelines](https://github.com/dailydevops/arguments/blob/main/CONTRIBUTING.md) before submitting a pull request.
+
+Key points:
+
+- Follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) format for commit messages
+- Write tests for new functionality across all relevant target frameworks
+- Follow existing code style and conventions (enforced by analyzers and CSharpier)
+- Update documentation as needed
+- Ensure all tests pass on all target frameworks before submitting
+
+### Code of Conduct
+
+This project adheres to the Contributor Covenant [Code of Conduct](https://github.com/dailydevops/arguments/blob/main/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to info@daily-devops.net.
+
+### Documentation
+
+- **[Architecture Decision Records](https://github.com/dailydevops/arguments/tree/main/decisions/)** - Detailed architectural decisions and rationale
+- **[Contributing Guidelines](https://github.com/dailydevops/arguments/blob/main/CONTRIBUTING.md)** - How to contribute to this project
+- **[Code of Conduct](https://github.com/dailydevops/arguments/blob/main/CODE_OF_CONDUCT.md)** - Community standards and expectations
+- **[License](https://github.com/dailydevops/arguments/blob/main/LICENSE)** - Project licensing information (MIT License)
+- **[Release Notes](https://github.com/dailydevops/arguments/releases/)** - Version history and changelog
+
+### Versioning
+
+This project uses [GitVersion](https://gitversion.net/) for automated semantic versioning based on Git history and [Conventional Commits](https://www.conventionalcommits.org/). Version numbers are automatically calculated during the build process:
+
+- **Major version** (1.0.0 → 2.0.0): Breaking changes indicated by `!` or `BREAKING CHANGE:` footer in commit messages
+- **Minor version** (1.0.0 → 1.1.0): New features added via `feat:` commits
+- **Patch version** (1.0.0 → 1.0.1): Bug fixes and maintenance via `fix:`, `chore:`, `docs:`, etc.
+
+For more details, see [GitVersion for Automated Semantic Versioning](https://github.com/dailydevops/arguments/blob/main/decisions/2025-07-10-gitversion-automated-semantic-versioning.md).
+
+### Support
+
+- **Issues**: Report bugs or request features on [GitHub Issues](https://github.com/dailydevops/arguments/issues)
+- **Documentation**: Read the full documentation in this repository
+- **NuGet**: Download the package from [NuGet.org](https://www.nuget.org/packages/NetEvolve.Arguments/)
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/dailydevops/arguments/blob/main/LICENSE) file for details.
 
-## Related Resources
+---
 
-- [Official .NET API Documentation](https://learn.microsoft.com/en-us/dotnet/api/)
-- [Argument Validation Best Practices](https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/exceptions/)
-- [Project Repository](https://github.com/dailydevops/arguments)
+> [!NOTE]
+> **Made with ❤️ by the NetEvolve Team**
+>
+> Visit us at [https://www.daily-devops.net](https://www.daily-devops.net) for more information about our services and solutions.

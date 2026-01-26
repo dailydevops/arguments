@@ -1,4 +1,4 @@
-namespace NetEvolve.Arguments.Tests.Unit;
+﻿namespace NetEvolve.Arguments.Tests.Unit;
 
 using System;
 using System.Collections.Generic;
@@ -122,7 +122,7 @@ public sealed class ArgumentExceptionPolyfillsTests
     public void ThrowIfNullOrEmpty_Enumerable_WhenArgumentIsEmptyList_ThrowsArgumentException()
     {
         // Arrange
-        var argument = new List<string>();
+        IEnumerable<string> argument = new List<string>();
 
         // Act
         void Act() => ArgumentException.ThrowIfNullOrEmpty(argument);
@@ -146,7 +146,7 @@ public sealed class ArgumentExceptionPolyfillsTests
     public async Task ThrowIfNullOrEmpty_Enumerable_WhenArgumentIsSingleElement_DoesNotThrow()
     {
         // Arrange
-        var argument = new List<string> { "item" };
+        IEnumerable<string> argument = new List<string> { "item" };
 
         // Act & Assert
         ArgumentException.ThrowIfNullOrEmpty(argument);
