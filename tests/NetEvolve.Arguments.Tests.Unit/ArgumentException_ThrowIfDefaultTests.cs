@@ -32,7 +32,7 @@ public sealed class ArgumentException_ThrowIfDefaultTests
     public void ThrowIfDefault_Guid_WhenValueIsDefault_ThrowsArgumentException()
     {
         // Arrange
-        Guid argument = default;
+        var argument = Guid.Empty;
 
         // Act
         void Act() => ArgumentException.ThrowIfDefault(argument);

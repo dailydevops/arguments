@@ -106,10 +106,88 @@ public sealed class ArgumentExceptionPolyfillsTests
     }
 
     [Test]
+    public void ThrowIfNullOrEmpty_Array_WhenArgumentIsNull_ThrowsArgumentNullException()
+    {
+        // Arrange
+        int[]? argument = null;
+
+        // Act
+        void Act() => ArgumentException.ThrowIfNullOrEmpty(argument);
+
+        // Assert
+        _ = Assert.Throws<ArgumentNullException>("argument", Act);
+    }
+
+    [Test]
+    public void ThrowIfNullOrEmpty_ReadOnly_WhenArgumentIsNull_ThrowsArgumentNullException()
+    {
+        // Arrange
+        IReadOnlyCollection<int>? argument = null;
+
+        // Act
+        void Act() => ArgumentException.ThrowIfNullOrEmpty(argument);
+
+        // Assert
+        _ = Assert.Throws<ArgumentNullException>("argument", Act);
+    }
+
+    [Test]
+    public void ThrowIfNullOrEmpty_Collection_WhenArgumentIsNull_ThrowsArgumentNullException()
+    {
+        // Arrange
+        ICollection<int>? argument = null;
+
+        // Act
+        void Act() => ArgumentException.ThrowIfNullOrEmpty(argument);
+
+        // Assert
+        _ = Assert.Throws<ArgumentNullException>("argument", Act);
+    }
+
+    [Test]
     public void ThrowIfNullOrEmpty_Enumerable_WhenArgumentIsEmptyArray_ThrowsArgumentException()
     {
         // Arrange
+        IEnumerable<int> argument = Array.Empty<int>();
+
+        // Act
+        void Act() => ArgumentException.ThrowIfNullOrEmpty(argument);
+
+        // Assert
+        _ = Assert.Throws<ArgumentException>("argument", Act);
+    }
+
+    [Test]
+    public void ThrowIfNullOrEmpty_Array_WhenArgumentIsEmptyArray_ThrowsArgumentException()
+    {
+        // Arrange
         var argument = Array.Empty<int>();
+
+        // Act
+        void Act() => ArgumentException.ThrowIfNullOrEmpty(argument);
+
+        // Assert
+        _ = Assert.Throws<ArgumentException>("argument", Act);
+    }
+
+    [Test]
+    public void ThrowIfNullOrEmpty_Collection_WhenArgumentIsEmptyArray_ThrowsArgumentException()
+    {
+        // Arrange
+        ICollection<int> argument = Array.Empty<int>();
+
+        // Act
+        void Act() => ArgumentException.ThrowIfNullOrEmpty(argument);
+
+        // Assert
+        _ = Assert.Throws<ArgumentException>("argument", Act);
+    }
+
+    [Test]
+    public void ThrowIfNullOrEmpty_ReadOnly_WhenArgumentIsEmptyArray_ThrowsArgumentException()
+    {
+        // Arrange
+        IReadOnlyCollection<int> argument = Array.Empty<int>();
 
         // Act
         void Act() => ArgumentException.ThrowIfNullOrEmpty(argument);
@@ -123,6 +201,19 @@ public sealed class ArgumentExceptionPolyfillsTests
     {
         // Arrange
         IEnumerable<string> argument = new List<string>();
+
+        // Act
+        void Act() => ArgumentException.ThrowIfNullOrEmpty(argument);
+
+        // Assert
+        _ = Assert.Throws<ArgumentException>("argument", Act);
+    }
+
+    [Test]
+    public void ThrowIfNullOrEmpty_Collection_WhenArgumentIsEmptyList_ThrowsArgumentException()
+    {
+        // Arrange
+        ICollection<string> argument = new List<string>();
 
         // Act
         void Act() => ArgumentException.ThrowIfNullOrEmpty(argument);

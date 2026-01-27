@@ -376,15 +376,12 @@ public static class ArgumentExceptionPolyfills
                 throw new ArgumentNullException(paramName);
             }
 
-            if (argument.TryGetNonEnumeratedCount(out var count))
+            if (argument.TryGetNonEnumeratedCount(out var count) && count < minCount)
             {
-                if (count < minCount)
-                {
-                    throw new ArgumentException(
-                        $"The collection count {count} is less than the minimum required count {minCount}.",
-                        paramName
-                    );
-                }
+                throw new ArgumentException(
+                    $"The collection count {count} is less than the minimum required count {minCount}.",
+                    paramName
+                );
             }
         }
 
@@ -489,15 +486,12 @@ public static class ArgumentExceptionPolyfills
                 throw new ArgumentNullException(paramName);
             }
 
-            if (argument.TryGetNonEnumeratedCount(out var count))
+            if (argument.TryGetNonEnumeratedCount(out var count) && (count < minCount || count > maxCount))
             {
-                if (count < minCount || count > maxCount)
-                {
-                    throw new ArgumentException(
-                        $"The collection count {count} is outside the allowed range [{minCount}, {maxCount}].",
-                        paramName
-                    );
-                }
+                throw new ArgumentException(
+                    $"The collection count {count} is outside the allowed range [{minCount}, {maxCount}].",
+                    paramName
+                );
             }
         }
 
@@ -605,12 +599,9 @@ public static class ArgumentExceptionPolyfills
             }
 
             var set = new HashSet<T>();
-            foreach (var item in argument)
+            if (!argument.All(item => set.Add(item)))
             {
-                if (!set.Add(item))
-                {
-                    throw new ArgumentException("The collection cannot contain duplicate elements.", paramName);
-                }
+                throw new ArgumentException("The collection cannot contain duplicate elements.", paramName);
             }
         }
 
@@ -633,12 +624,10 @@ public static class ArgumentExceptionPolyfills
             }
 
             var set = new HashSet<T>(comparer);
-            foreach (var item in argument)
+
+            if (!argument.All(item => set.Add(item)))
             {
-                if (!set.Add(item))
-                {
-                    throw new ArgumentException("The collection cannot contain duplicate elements.", paramName);
-                }
+                throw new ArgumentException("The collection cannot contain duplicate elements.", paramName);
             }
         }
 
@@ -653,7 +642,7 @@ public static class ArgumentExceptionPolyfills
         )
             where T : struct, IEquatable<T>
         {
-            if (argument.Equals(default(T)))
+            if (argument.Equals(default))
             {
                 throw new ArgumentException("The value cannot be the default value.", paramName);
             }
