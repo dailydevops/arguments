@@ -4,7 +4,7 @@
 [![NuGet Downloads](https://img.shields.io/nuget/dt/NetEvolve.Arguments.svg)](https://www.nuget.org/packages/NetEvolve.Arguments/)
 [![License](https://img.shields.io/github/license/dailydevops/arguments.svg)](https://github.com/dailydevops/arguments/blob/main/LICENSE)
 
-A universal polyfill library that provides modern `ArgumentNullException.ThrowIf*` and `ArgumentException.ThrowIf*` helper methods across all .NET runtimes (.NET Standard 2.0+, .NET Framework 4.6.2+, .NET 6.0+), enabling consistent argument validation patterns regardless of target framework version.
+A universal polyfill library that provides modern `ArgumentNullException.ThrowIf*` and `ArgumentException.ThrowIf*` helper methods across all .NET runtimes (.NET Standard 2.0+, .NET Framework 4.7.2+, .NET 6.0+), enabling consistent argument validation patterns regardless of target framework version.
 
 ## Features
 
@@ -621,7 +621,7 @@ ArgumentException.ThrowIfNullOrWhiteSpace(username);
 - **.NET 8.0**
 - **.NET 7.0**
 - **.NET 6.0**
-- **.NET Standard 2.0** (enables support for .NET Framework 4.6.2+, Xamarin, Unity, and more)
+- **.NET Standard 2.0** (enables support for .NET Framework 4.7.2+, Xamarin, Unity, and more)
 - **.NET Framework 4.7.2** (Windows only)
 - **.NET Framework 4.8** (Windows only)
 - **.NET Framework 4.8.1** (Windows only)

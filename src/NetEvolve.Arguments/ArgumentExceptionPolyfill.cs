@@ -268,12 +268,30 @@ public static class ArgumentExceptionPolyfills
                 throw new ArgumentNullException(paramName);
             }
 
-            if (argument.TryGetNonEnumeratedCount(out var count) && count > maxCount)
+            if (argument.TryGetNonEnumeratedCount(out var count))
             {
-                throw new ArgumentException(
-                    $"The collection count {count} exceeds the maximum allowed count {maxCount}.",
-                    paramName
-                );
+                if (count > maxCount)
+                {
+                    throw new ArgumentException(
+                        $"The collection count {count} exceeds the maximum allowed count {maxCount}.",
+                        paramName
+                    );
+                }
+            }
+            else
+            {
+                var actualCount = 0;
+                foreach (var _ in argument)
+                {
+                    actualCount++;
+                    if (actualCount > maxCount)
+                    {
+                        throw new ArgumentException(
+                            $"The collection count {actualCount} exceeds the maximum allowed count {maxCount}.",
+                            paramName
+                        );
+                    }
+                }
             }
         }
 
@@ -376,12 +394,31 @@ public static class ArgumentExceptionPolyfills
                 throw new ArgumentNullException(paramName);
             }
 
-            if (argument.TryGetNonEnumeratedCount(out var count) && count < minCount)
+            if (argument.TryGetNonEnumeratedCount(out var count))
             {
-                throw new ArgumentException(
-                    $"The collection count {count} is less than the minimum required count {minCount}.",
-                    paramName
-                );
+                if (count < minCount)
+                {
+                    throw new ArgumentException(
+                        $"The collection count {count} is less than the minimum required count {minCount}.",
+                        paramName
+                    );
+                }
+            }
+            else
+            {
+                var actualCount = 0;
+                foreach (var _ in argument)
+                {
+                    actualCount++;
+                }
+
+                if (actualCount < minCount)
+                {
+                    throw new ArgumentException(
+                        $"The collection count {actualCount} is less than the minimum required count {minCount}.",
+                        paramName
+                    );
+                }
             }
         }
 
@@ -486,12 +523,31 @@ public static class ArgumentExceptionPolyfills
                 throw new ArgumentNullException(paramName);
             }
 
-            if (argument.TryGetNonEnumeratedCount(out var count) && (count < minCount || count > maxCount))
+            if (argument.TryGetNonEnumeratedCount(out var count))
             {
-                throw new ArgumentException(
-                    $"The collection count {count} is outside the allowed range [{minCount}, {maxCount}].",
-                    paramName
-                );
+                if (count < minCount || count > maxCount)
+                {
+                    throw new ArgumentException(
+                        $"The collection count {count} is outside the allowed range [{minCount}, {maxCount}].",
+                        paramName
+                    );
+                }
+            }
+            else
+            {
+                var actualCount = 0;
+                foreach (var _ in argument)
+                {
+                    actualCount++;
+                }
+
+                if (actualCount < minCount || actualCount > maxCount)
+                {
+                    throw new ArgumentException(
+                        $"The collection count {actualCount} is outside the allowed range [{minCount}, {maxCount}].",
+                        paramName
+                    );
+                }
             }
         }
 

@@ -19,7 +19,7 @@ public sealed class ArgumentOutOfRangeException_ThrowIfInPastTests
     }
 
     [Test]
-    public async Task ThrowIfInPast_DateTimeOffset_WhenValueIsNow_DoesNotThrow()
+    public async Task ThrowIfInPast_DateTimeOffset_WhenValueIsSlightlyInFuture_DoesNotThrow()
     {
         // Arrange
         var argument = DateTimeOffset.UtcNow.AddSeconds(1);
