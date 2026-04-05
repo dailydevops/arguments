@@ -39,7 +39,7 @@ public sealed class ArgumentException_ThrowIfCountLessThanTests
 
         // Act & Assert
         ArgumentException.ThrowIfCountLessThan(argument, 5);
-        _ = await Assert.That(argument).HasCount().EqualTo(5);
+        _ = await Assert.That(argument).Count().IsEqualTo(5);
     }
 
     [Test]

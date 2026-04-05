@@ -38,7 +38,7 @@ public sealed class ArgumentException_ThrowIfLengthGreaterThanTests
 
         // Act & Assert
         ArgumentException.ThrowIfLengthGreaterThan(argument, 10);
-        _ = await Assert.That(argument).HasLength().EqualTo(10);
+        _ = await Assert.That(argument).Length().EqualTo(10);
     }
 
     [Test]
@@ -60,6 +60,6 @@ public sealed class ArgumentException_ThrowIfLengthGreaterThanTests
 
         // Act & Assert
         ArgumentException.ThrowIfLengthGreaterThan(argument, 10);
-        _ = await Assert.That(argument).HasLength().EqualTo(0);
+        _ = await Assert.That(argument).Length().EqualTo(0);
     }
 }

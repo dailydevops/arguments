@@ -230,7 +230,7 @@ public sealed class ArgumentExceptionPolyfillsTests
 
         // Act & Assert
         ArgumentException.ThrowIfNullOrEmpty(argument);
-        _ = await Assert.That(argument).HasCount().EqualTo(3);
+        _ = await Assert.That(argument).Count().IsEqualTo(3);
     }
 
     [Test]
@@ -241,6 +241,6 @@ public sealed class ArgumentExceptionPolyfillsTests
 
         // Act & Assert
         ArgumentException.ThrowIfNullOrEmpty(argument);
-        _ = await Assert.That(argument).HasCount().EqualTo(1);
+        _ = await Assert.That(argument).Count().IsEqualTo(1);
     }
 }
