@@ -38,7 +38,7 @@ public sealed class ArgumentException_ThrowIfLengthLessThanTests
 
         // Act & Assert
         ArgumentException.ThrowIfLengthLessThan(argument, 5);
-        _ = await Assert.That(argument).HasLength().EqualTo(5);
+        _ = await Assert.That(argument).Length().EqualTo(5);
     }
 
     [Test]

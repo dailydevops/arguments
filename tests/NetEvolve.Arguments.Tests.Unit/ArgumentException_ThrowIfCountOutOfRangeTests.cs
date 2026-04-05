@@ -52,7 +52,7 @@ public sealed class ArgumentException_ThrowIfCountOutOfRangeTests
 
         // Act & Assert
         ArgumentException.ThrowIfCountOutOfRange(argument, 3, 7);
-        _ = await Assert.That(argument).HasCount().EqualTo(3);
+        _ = await Assert.That(argument).Count().IsEqualTo(3);
     }
 
     [Test]
@@ -63,7 +63,7 @@ public sealed class ArgumentException_ThrowIfCountOutOfRangeTests
 
         // Act & Assert
         ArgumentException.ThrowIfCountOutOfRange(argument, 3, 7);
-        _ = await Assert.That(argument).HasCount().EqualTo(7);
+        _ = await Assert.That(argument).Count().IsEqualTo(7);
     }
 
     [Test]

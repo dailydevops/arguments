@@ -51,7 +51,7 @@ public sealed class ArgumentException_ThrowIfLengthOutOfRangeTests
 
         // Act & Assert
         ArgumentException.ThrowIfLengthOutOfRange(argument, 5, 10);
-        _ = await Assert.That(argument).HasLength().EqualTo(5);
+        _ = await Assert.That(argument).Length().EqualTo(5);
     }
 
     [Test]
@@ -62,7 +62,7 @@ public sealed class ArgumentException_ThrowIfLengthOutOfRangeTests
 
         // Act & Assert
         ArgumentException.ThrowIfLengthOutOfRange(argument, 5, 10);
-        _ = await Assert.That(argument).HasLength().EqualTo(10);
+        _ = await Assert.That(argument).Length().EqualTo(10);
     }
 
     [Test]

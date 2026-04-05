@@ -39,7 +39,7 @@ public sealed class ArgumentException_ThrowIfCountGreaterThanTests
 
         // Act & Assert
         ArgumentException.ThrowIfCountGreaterThan(argument, 5);
-        _ = await Assert.That(argument).HasCount().EqualTo(5);
+        _ = await Assert.That(argument).Count().IsEqualTo(5);
     }
 
     [Test]
@@ -50,7 +50,7 @@ public sealed class ArgumentException_ThrowIfCountGreaterThanTests
 
         // Act & Assert
         ArgumentException.ThrowIfCountGreaterThan(argument, 5);
-        _ = await Assert.That(argument).HasCount().LessThan(5);
+        _ = await Assert.That(argument).Count().IsLessThan(5);
     }
 
     [Test]
