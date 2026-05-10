@@ -34,31 +34,6 @@ public static class ArgumentExceptionPolyfills
                 throw new ArgumentException("The value cannot be an empty string.", paramName);
             }
         }
-
-        /// <summary>Throws an exception if <paramref name="argument"/> is <see langword="null"/>, empty, or consists only of white-space characters.</summary>
-        /// <param name="argument">The string argument to validate.</param>
-        /// <param name="paramName">The name of the parameter with which <paramref name="argument"/> corresponds.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="argument"/> is <see langword="null"/>.</exception>
-        /// <exception cref="ArgumentException"><paramref name="argument"/> is empty or consists only of white-space characters.</exception>
-        /// <seealso href="https://learn.microsoft.com/en-us/dotnet/api/system.argumentexception.throwifnullorwhitespace?view=net-10.0#system-argumentexception-throwifnullorwhitespace(system-string-system-string)" />
-        public static void ThrowIfNullOrWhiteSpace(
-            [NotNull] string? argument,
-            [CallerArgumentExpression(nameof(argument))] string? paramName = null
-        )
-        {
-            if (argument is null)
-            {
-                throw new ArgumentNullException(paramName);
-            }
-
-            if (string.IsNullOrWhiteSpace(argument))
-            {
-                throw new ArgumentException(
-                    "The value cannot be an empty string or composed entirely of whitespace.",
-                    paramName
-                );
-            }
-        }
 #endif
 
         /// <summary>Throws an exception if <paramref name="argument"/> is <see langword="null"/> or empty.</summary>
@@ -148,6 +123,33 @@ public static class ArgumentExceptionPolyfills
                 throw new ArgumentException("The array cannot be empty.", paramName);
             }
         }
+
+#if !NET8_0_OR_GREATER
+        /// <summary>Throws an exception if <paramref name="argument"/> is <see langword="null"/>, empty, or consists only of white-space characters.</summary>
+        /// <param name="argument">The string argument to validate.</param>
+        /// <param name="paramName">The name of the parameter with which <paramref name="argument"/> corresponds.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="argument"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException"><paramref name="argument"/> is empty or consists only of white-space characters.</exception>
+        /// <seealso href="https://learn.microsoft.com/en-us/dotnet/api/system.argumentexception.throwifnullorwhitespace?view=net-10.0#system-argumentexception-throwifnullorwhitespace(system-string-system-string)" />
+        public static void ThrowIfNullOrWhiteSpace(
+            [NotNull] string? argument,
+            [CallerArgumentExpression(nameof(argument))] string? paramName = null
+        )
+        {
+            if (argument is null)
+            {
+                throw new ArgumentNullException(paramName);
+            }
+
+            if (string.IsNullOrWhiteSpace(argument))
+            {
+                throw new ArgumentException(
+                    "The value cannot be an empty string or composed entirely of whitespace.",
+                    paramName
+                );
+            }
+        }
+#endif
 
         /// <summary>Throws an exception if <paramref name="argument"/> exceeds the specified maximum length.</summary>
         /// <param name="argument">The string argument to validate.</param>
