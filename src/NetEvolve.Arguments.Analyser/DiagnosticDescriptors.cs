@@ -2,10 +2,13 @@ namespace NetEvolve.Arguments.Analyser;
 
 using Microsoft.CodeAnalysis;
 
+/// <summary>Holds the <see cref="DiagnosticDescriptor"/> for every rule (NEA0001-NEA0009) exposed by this analyzer package.</summary>
 internal static class DiagnosticDescriptors
 {
+    /// <summary>The base URL under which every rule's Markdown documentation page is published.</summary>
     private const string HelpLinkBase = "https://github.com/dailydevops/arguments/blob/main/docs/analysers";
 
+    /// <summary>NEA0001: reports a null-check-then-throw pattern that can be replaced by <c>ArgumentNullException.ThrowIfNull</c>.</summary>
     public static readonly DiagnosticDescriptor ThrowIfNull = new(
         id: "NEA0001",
         title: "Use ArgumentNullException.ThrowIfNull",
@@ -17,6 +20,7 @@ internal static class DiagnosticDescriptors
         helpLinkUri: $"{HelpLinkBase}/NEA0001.md"
     );
 
+    /// <summary>NEA0002: reports a <c>string.IsNullOrEmpty</c>/<c>IsNullOrWhiteSpace</c>-then-throw pattern that can be replaced by an <c>ArgumentException</c> throw-helper.</summary>
     public static readonly DiagnosticDescriptor ThrowIfNullOrEmpty = new(
         id: "NEA0002",
         title: "Use ArgumentException throw helper",
@@ -28,6 +32,7 @@ internal static class DiagnosticDescriptors
         helpLinkUri: $"{HelpLinkBase}/NEA0002.md"
     );
 
+    /// <summary>NEA0003: reports a comparison-then-throw pattern that can be replaced by an <c>ArgumentOutOfRangeException</c> throw-helper.</summary>
     public static readonly DiagnosticDescriptor ThrowIfOutOfRange = new(
         id: "NEA0003",
         title: "Use ArgumentOutOfRangeException throw helper",
@@ -39,6 +44,7 @@ internal static class DiagnosticDescriptors
         helpLinkUri: $"{HelpLinkBase}/NEA0003.md"
     );
 
+    /// <summary>NEA0004: reports a default-value-check-then-throw pattern that can be replaced by <c>ArgumentException.ThrowIfDefault</c>.</summary>
     public static readonly DiagnosticDescriptor ThrowIfDefault = new(
         id: "NEA0004",
         title: "Use ArgumentException.ThrowIfDefault",
@@ -50,6 +56,7 @@ internal static class DiagnosticDescriptors
         helpLinkUri: $"{HelpLinkBase}/NEA0004.md"
     );
 
+    /// <summary>NEA0005: reports a disposed-check-then-throw pattern that can be replaced by <c>ObjectDisposedException.ThrowIf</c>.</summary>
     public static readonly DiagnosticDescriptor ThrowIfDisposed = new(
         id: "NEA0005",
         title: "Use ObjectDisposedException.ThrowIf",
@@ -61,6 +68,7 @@ internal static class DiagnosticDescriptors
         helpLinkUri: $"{HelpLinkBase}/NEA0005.md"
     );
 
+    /// <summary>NEA0006: reports a string-length-comparison-then-throw pattern that can be replaced by an <c>ArgumentException</c> throw-helper.</summary>
     public static readonly DiagnosticDescriptor ThrowIfLength = new(
         id: "NEA0006",
         title: "Use ArgumentException string-length throw helper",
@@ -72,6 +80,7 @@ internal static class DiagnosticDescriptors
         helpLinkUri: $"{HelpLinkBase}/NEA0006.md"
     );
 
+    /// <summary>NEA0007: reports a collection-count-comparison-then-throw pattern that can be replaced by an <c>ArgumentException</c> throw-helper.</summary>
     public static readonly DiagnosticDescriptor ThrowIfCount = new(
         id: "NEA0007",
         title: "Use ArgumentException collection-count throw helper",
@@ -83,6 +92,7 @@ internal static class DiagnosticDescriptors
         helpLinkUri: $"{HelpLinkBase}/NEA0007.md"
     );
 
+    /// <summary>NEA0008: reports a white-space-check-then-throw pattern that can be replaced by <c>ArgumentException.ThrowIfContainsWhiteSpace</c>.</summary>
     public static readonly DiagnosticDescriptor ThrowIfContainsWhiteSpace = new(
         id: "NEA0008",
         title: "Use ArgumentException.ThrowIfContainsWhiteSpace",
@@ -94,6 +104,7 @@ internal static class DiagnosticDescriptors
         helpLinkUri: $"{HelpLinkBase}/NEA0008.md"
     );
 
+    /// <summary>NEA0009: reports a <c>Guid.Empty</c>-check-then-throw pattern that can be replaced by <c>ArgumentException.ThrowIfEmptyGuid</c>.</summary>
     public static readonly DiagnosticDescriptor ThrowIfEmptyGuid = new(
         id: "NEA0009",
         title: "Use ArgumentException.ThrowIfEmptyGuid",

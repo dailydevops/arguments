@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Formatting;
 [Shared]
 public sealed class ThrowIfNullCodeFixProvider : CodeFixProvider
 {
+    /// <summary>The display title shown for this fix in the lightbulb/quick-actions menu.</summary>
     private const string Title = "Use ArgumentNullException.ThrowIfNull";
 
     /// <inheritdoc />
@@ -65,6 +66,11 @@ public sealed class ThrowIfNullCodeFixProvider : CodeFixProvider
         }
     }
 
+    /// <summary>Rewrites an <c>if (arg is null) throw ...;</c> statement into a single <c>ArgumentNullException.ThrowIfNull(arg);</c> call.</summary>
+    /// <param name="document">The document containing the diagnostic.</param>
+    /// <param name="ifStatement">The <c>if</c> statement to replace.</param>
+    /// <param name="cancellationToken">The token used to cancel the fix.</param>
+    /// <returns>The updated document, or the original document if the pattern can no longer be matched.</returns>
     private static async Task<Document> ApplyIfStatementFixAsync(
         Document document,
         IfStatementSyntax ifStatement,
@@ -92,6 +98,15 @@ public sealed class ThrowIfNullCodeFixProvider : CodeFixProvider
         return document.WithSyntaxRoot(newRoot);
     }
 
+    /// <summary>
+    /// Rewrites <c>arg ?? throw new ArgumentNullException(nameof(arg))</c> by inserting an
+    /// <c>ArgumentNullException.ThrowIfNull(arg);</c> statement before the containing statement and replacing the
+    /// coalesce expression with the now-guaranteed-non-null argument.
+    /// </summary>
+    /// <param name="document">The document containing the diagnostic.</param>
+    /// <param name="coalesce">The coalesce (<c>??</c>) expression to rewrite.</param>
+    /// <param name="cancellationToken">The token used to cancel the fix.</param>
+    /// <returns>The updated document, or the original document if the pattern can no longer be matched.</returns>
     private static async Task<Document> ApplyCoalesceFixAsync(
         Document document,
         BinaryExpressionSyntax coalesce,
@@ -124,6 +139,9 @@ public sealed class ThrowIfNullCodeFixProvider : CodeFixProvider
         return editor.GetChangedDocument();
     }
 
+    /// <summary>Builds the <c>ArgumentNullException.ThrowIfNull(argument)</c> invocation expression used by both fix paths.</summary>
+    /// <param name="argument">The expression to pass as the throw-helper's argument.</param>
+    /// <returns>The constructed invocation expression.</returns>
     private static InvocationExpressionSyntax CreateThrowIfNullInvocation(ExpressionSyntax argument) =>
         SyntaxFactory.InvocationExpression(
             SyntaxFactory.MemberAccessExpression(

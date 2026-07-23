@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ThrowIfEmptyGuidAnalyzer : DiagnosticAnalyzer
 {
+    /// <summary>The fully-qualified metadata name of <see cref="ArgumentException"/>.</summary>
     private const string ArgumentExceptionMetadataName = "System.ArgumentException";
 
     /// <inheritdoc />
@@ -30,6 +31,8 @@ public sealed class ThrowIfEmptyGuidAnalyzer : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.IfStatement);
     }
 
+    /// <summary>Analyzes an <c>if</c> statement and reports NEA0009 when it is a <c>Guid.Empty</c>-check-then-throw of <see cref="ArgumentException"/>.</summary>
+    /// <param name="context">The syntax-node analysis context for the <c>if</c> statement being visited.</param>
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
         var ifStatement = (IfStatementSyntax)context.Node;
@@ -78,6 +81,10 @@ public sealed class ThrowIfEmptyGuidAnalyzer : DiagnosticAnalyzer
         );
     }
 
+    /// <summary>Recognizes <c>arg.Equals(Guid.Empty)</c> and <c>arg == Guid.Empty</c>/<c>Guid.Empty == arg</c>.</summary>
+    /// <param name="condition">The <c>if</c> statement's condition expression.</param>
+    /// <param name="argument">When this method returns <see langword="true"/>, the expression being checked; otherwise, <see langword="null"/>.</param>
+    /// <returns><see langword="true"/> if <paramref name="condition"/> is a recognized <c>Guid.Empty</c>-check shape; otherwise, <see langword="false"/>.</returns>
     internal static bool TryGetEmptyGuidCheckedExpression(ExpressionSyntax condition, out ExpressionSyntax? argument)
     {
         condition = SyntaxHelpers.Unwrap(condition);
@@ -112,6 +119,9 @@ public sealed class ThrowIfEmptyGuidAnalyzer : DiagnosticAnalyzer
         return false;
     }
 
+    /// <summary>Determines whether an expression is a <c>Guid.Empty</c> member access.</summary>
+    /// <param name="expression">The expression to test.</param>
+    /// <returns><see langword="true"/> if <paramref name="expression"/> is <c>Guid.Empty</c>; otherwise, <see langword="false"/>.</returns>
     private static bool IsGuidEmpty(ExpressionSyntax expression) =>
         SyntaxHelpers.Unwrap(expression)
             is MemberAccessExpressionSyntax

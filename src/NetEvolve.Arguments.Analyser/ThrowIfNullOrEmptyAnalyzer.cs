@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ThrowIfNullOrEmptyAnalyzer : DiagnosticAnalyzer
 {
+    /// <summary>The fully-qualified metadata name of <see cref="ArgumentException"/>.</summary>
     private const string ArgumentExceptionMetadataName = "System.ArgumentException";
 
     /// <inheritdoc />
@@ -30,6 +31,8 @@ public sealed class ThrowIfNullOrEmptyAnalyzer : DiagnosticAnalyzer
         context.RegisterCompilationStartAction(OnCompilationStart);
     }
 
+    /// <summary>Registers the syntax-node action for this rule, unless the compilation's BCL already exposes <c>ArgumentException.ThrowIfNullOrEmpty</c>.</summary>
+    /// <param name="context">The compilation-start context supplied by the Roslyn analyzer driver.</param>
     private static void OnCompilationStart(CompilationStartAnalysisContext context)
     {
         // The BCL exposes these throw-helpers since .NET 8; where it does, the built-in
@@ -42,6 +45,8 @@ public sealed class ThrowIfNullOrEmptyAnalyzer : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.IfStatement);
     }
 
+    /// <summary>Analyzes an <c>if</c> statement and reports NEA0002 when it is a <c>string.IsNullOrEmpty</c>/<c>IsNullOrWhiteSpace</c>-then-throw of <see cref="ArgumentException"/>.</summary>
+    /// <param name="context">The syntax-node analysis context for the <c>if</c> statement being visited.</param>
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
         var ifStatement = (IfStatementSyntax)context.Node;
@@ -85,6 +90,11 @@ public sealed class ThrowIfNullOrEmptyAnalyzer : DiagnosticAnalyzer
         );
     }
 
+    /// <summary>Recognizes <c>string.IsNullOrEmpty(arg)</c>/<c>IsNullOrWhiteSpace(arg)</c> and reports the matching throw-helper member name and the checked argument.</summary>
+    /// <param name="condition">The <c>if</c> statement's condition expression.</param>
+    /// <param name="argument">When this method returns <see langword="true"/>, the string argument being checked; otherwise, <see langword="null"/>.</param>
+    /// <param name="helperName">When this method returns <see langword="true"/>, the matching <see cref="ArgumentException"/> throw-helper member name; otherwise, <see langword="null"/>.</param>
+    /// <returns><see langword="true"/> if <paramref name="condition"/> is a recognized shape; otherwise, <see langword="false"/>.</returns>
     internal static bool TryGetStringCheck(
         ExpressionSyntax condition,
         out ExpressionSyntax? argument,
@@ -130,6 +140,9 @@ public sealed class ThrowIfNullOrEmptyAnalyzer : DiagnosticAnalyzer
         return true;
     }
 
+    /// <summary>Determines whether an expression refers to the <see cref="string"/> type, either via the <c>string</c> keyword or the <c>String</c> identifier.</summary>
+    /// <param name="expression">The invocation target's qualifier expression to test.</param>
+    /// <returns><see langword="true"/> if <paramref name="expression"/> refers to <see cref="string"/>; otherwise, <see langword="false"/>.</returns>
     private static bool IsStringTypeReference(ExpressionSyntax expression) =>
         SyntaxHelpers.Unwrap(expression) switch
         {

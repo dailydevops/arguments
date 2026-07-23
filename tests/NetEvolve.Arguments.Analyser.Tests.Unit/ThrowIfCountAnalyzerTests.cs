@@ -41,9 +41,23 @@ public sealed class ThrowIfCountAnalyzerTests
     }
 
     [Test]
-    public async Task Analyze_WhenThrowingArgumentNullException_DoesNotReportDiagnostic()
+    [Arguments("if (argument.Count > 100) throw new ArgumentNullException(nameof(argument));")]
+    [Arguments("if (argument.Length > 100) throw new ArgumentException(nameof(argument));")]
+    [Arguments("if (argument.Count == 100) throw new ArgumentException(nameof(argument));")]
+    [Arguments(
+        """
+            if (argument.Count > 100)
+            {
+                throw new ArgumentException(nameof(argument));
+            }
+            else
+            {
+            }
+            """
+    )]
+    public async Task Analyze_WhenConditionOrExceptionIsNotRecognized_DoesNotReportDiagnostic(string statement)
     {
-        const string source = """
+        var source = $$"""
             using System;
             using System.Collections.Generic;
 
@@ -51,7 +65,7 @@ public sealed class ThrowIfCountAnalyzerTests
             {
                 void M(ICollection<int> argument)
                 {
-                    if (argument.Count > 100) throw new ArgumentNullException(nameof(argument));
+                    {{statement}}
                 }
             }
             """;

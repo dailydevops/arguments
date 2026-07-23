@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ThrowIfDisposedAnalyzer : DiagnosticAnalyzer
 {
+    /// <summary>The fully-qualified metadata name of <see cref="ObjectDisposedException"/>.</summary>
     private const string ObjectDisposedExceptionMetadataName = "System.ObjectDisposedException";
 
     /// <inheritdoc />
@@ -30,6 +31,8 @@ public sealed class ThrowIfDisposedAnalyzer : DiagnosticAnalyzer
         context.RegisterCompilationStartAction(OnCompilationStart);
     }
 
+    /// <summary>Registers the syntax-node action for this rule, unless the compilation's BCL already exposes <c>ObjectDisposedException.ThrowIf</c>.</summary>
+    /// <param name="context">The compilation-start context supplied by the Roslyn analyzer driver.</param>
     private static void OnCompilationStart(CompilationStartAnalysisContext context)
     {
         // ObjectDisposedException.ThrowIf exists on the BCL since .NET 7; where it does, the
@@ -42,6 +45,11 @@ public sealed class ThrowIfDisposedAnalyzer : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.IfStatement);
     }
 
+    /// <summary>
+    /// Analyzes an <c>if</c> statement and reports NEA0005 when it is a disposed-check-then-throw of
+    /// <see cref="ObjectDisposedException"/> inside an instance member (the fix requires <c>this</c>).
+    /// </summary>
+    /// <param name="context">The syntax-node analysis context for the <c>if</c> statement being visited.</param>
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
         var ifStatement = (IfStatementSyntax)context.Node;

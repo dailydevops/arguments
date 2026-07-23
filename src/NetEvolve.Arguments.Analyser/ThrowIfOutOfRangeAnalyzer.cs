@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ThrowIfOutOfRangeAnalyzer : DiagnosticAnalyzer
 {
+    /// <summary>The fully-qualified metadata name of <see cref="ArgumentOutOfRangeException"/>.</summary>
     private const string ArgumentOutOfRangeExceptionMetadataName = "System.ArgumentOutOfRangeException";
 
     /// <inheritdoc />
@@ -30,6 +31,8 @@ public sealed class ThrowIfOutOfRangeAnalyzer : DiagnosticAnalyzer
         context.RegisterCompilationStartAction(OnCompilationStart);
     }
 
+    /// <summary>Registers the syntax-node action for this rule, unless the compilation's BCL already exposes the <see cref="ArgumentOutOfRangeException"/> throw-helpers.</summary>
+    /// <param name="context">The compilation-start context supplied by the Roslyn analyzer driver.</param>
     private static void OnCompilationStart(CompilationStartAnalysisContext context)
     {
         // The ArgumentOutOfRangeException throw-helpers exist on the BCL since .NET 8; where they do,
@@ -42,6 +45,8 @@ public sealed class ThrowIfOutOfRangeAnalyzer : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.IfStatement);
     }
 
+    /// <summary>Analyzes an <c>if</c> statement and reports NEA0003 when it is a comparison-then-throw of <see cref="ArgumentOutOfRangeException"/>.</summary>
+    /// <param name="context">The syntax-node analysis context for the <c>if</c> statement being visited.</param>
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
         var ifStatement = (IfStatementSyntax)context.Node;
@@ -106,6 +111,13 @@ public sealed class ThrowIfOutOfRangeAnalyzer : DiagnosticAnalyzer
         );
     }
 
+    /// <summary>
+    /// Recognizes a comparison against zero, another expression, or a combined range (<c>value &lt; min || value &gt; max</c>)
+    /// and maps it to the matching <see cref="ArgumentOutOfRangeException"/> throw-helper member and arguments.
+    /// </summary>
+    /// <param name="condition">The <c>if</c> statement's condition expression.</param>
+    /// <param name="comparison">When this method returns <see langword="true"/>, the recognized comparison; otherwise, <see langword="null"/>.</param>
+    /// <returns><see langword="true"/> if <paramref name="condition"/> is a recognized comparison shape; otherwise, <see langword="false"/>.</returns>
     internal static bool TryGetComparison(ExpressionSyntax condition, out ComparisonResult? comparison)
     {
         condition = SyntaxHelpers.Unwrap(condition);

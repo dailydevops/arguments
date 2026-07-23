@@ -58,6 +58,11 @@ public sealed class ThrowIfLengthCodeFixProvider : CodeFixProvider
         );
     }
 
+    /// <summary>Rewrites the matched <c>if</c> statement into a single call to the given <see cref="ArgumentException"/> string-length throw-helper.</summary>
+    /// <param name="document">The document containing the diagnostic.</param>
+    /// <param name="ifStatement">The <c>if</c> statement to replace.</param>
+    /// <param name="cancellationToken">The token used to cancel the fix.</param>
+    /// <returns>The updated document, or the original document if the pattern can no longer be matched.</returns>
     private static async Task<Document> ApplyFixAsync(
         Document document,
         IfStatementSyntax ifStatement,

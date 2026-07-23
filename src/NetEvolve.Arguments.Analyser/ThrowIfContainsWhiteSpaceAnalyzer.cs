@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ThrowIfContainsWhiteSpaceAnalyzer : DiagnosticAnalyzer
 {
+    /// <summary>The fully-qualified metadata name of <see cref="ArgumentException"/>.</summary>
     private const string ArgumentExceptionMetadataName = "System.ArgumentException";
 
     /// <inheritdoc />
@@ -30,6 +31,8 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzer : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.IfStatement);
     }
 
+    /// <summary>Analyzes an <c>if</c> statement and reports NEA0008 when it is a white-space-check-then-throw of <see cref="ArgumentException"/>.</summary>
+    /// <param name="context">The syntax-node analysis context for the <c>if</c> statement being visited.</param>
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
         var ifStatement = (IfStatementSyntax)context.Node;
@@ -72,6 +75,10 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzer : DiagnosticAnalyzer
         );
     }
 
+    /// <summary>Recognizes <c>arg.Any(c => char.IsWhiteSpace(c))</c> and the method-group form <c>arg.Any(char.IsWhiteSpace)</c>.</summary>
+    /// <param name="condition">The <c>if</c> statement's condition expression.</param>
+    /// <param name="argument">When this method returns <see langword="true"/>, the string argument being checked; otherwise, <see langword="null"/>.</param>
+    /// <returns><see langword="true"/> if <paramref name="condition"/> is a recognized white-space-check shape; otherwise, <see langword="false"/>.</returns>
     internal static bool TryGetContainsWhiteSpaceTarget(ExpressionSyntax condition, out ExpressionSyntax? argument)
     {
         argument = null;
@@ -113,6 +120,9 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzer : DiagnosticAnalyzer
         return false;
     }
 
+    /// <summary>Determines whether an expression is a <c>char.IsWhiteSpace</c> member access, either via the <c>char</c> keyword or the <c>Char</c> identifier.</summary>
+    /// <param name="expression">The expression to test.</param>
+    /// <returns><see langword="true"/> if <paramref name="expression"/> is <c>char.IsWhiteSpace</c> or <c>Char.IsWhiteSpace</c>; otherwise, <see langword="false"/>.</returns>
     private static bool IsCharIsWhiteSpaceMemberAccess(ExpressionSyntax expression)
     {
         if (

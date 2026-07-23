@@ -35,17 +35,32 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzerTests
     }
 
     [Test]
-    public async Task Analyze_WhenThrowingArgumentNullException_DoesNotReportDiagnostic()
+    [Arguments("if (argument.Any(char.IsWhiteSpace)) throw new ArgumentNullException(nameof(argument));")]
+    [Arguments("if (argument.Any(c => c == ' ')) throw new ArgumentException(nameof(argument));")]
+    [Arguments("if (argument.Any(c => char.IsWhiteSpace(other))) throw new ArgumentException(nameof(argument));")]
+    [Arguments("if (argument.Contains(' ')) throw new ArgumentException(nameof(argument));")]
+    [Arguments(
+        """
+            if (argument.Any(char.IsWhiteSpace))
+            {
+                throw new ArgumentException(nameof(argument));
+            }
+            else
+            {
+            }
+            """
+    )]
+    public async Task Analyze_WhenConditionOrExceptionIsNotRecognized_DoesNotReportDiagnostic(string statement)
     {
-        const string source = """
+        var source = $$"""
             using System;
             using System.Linq;
 
             class C
             {
-                void M(string argument)
+                void M(string argument, char other)
                 {
-                    if (argument.Any(char.IsWhiteSpace)) throw new ArgumentNullException(nameof(argument));
+                    {{statement}}
                 }
             }
             """;

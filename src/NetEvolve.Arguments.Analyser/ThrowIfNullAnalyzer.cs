@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ThrowIfNullAnalyzer : DiagnosticAnalyzer
 {
+    /// <summary>The fully-qualified metadata name of <see cref="ArgumentNullException"/>.</summary>
     private const string ArgumentNullExceptionMetadataName = "System.ArgumentNullException";
 
     /// <inheritdoc />
@@ -30,6 +31,8 @@ public sealed class ThrowIfNullAnalyzer : DiagnosticAnalyzer
         context.RegisterCompilationStartAction(OnCompilationStart);
     }
 
+    /// <summary>Registers the syntax-node actions for this rule, unless the compilation's BCL already exposes <c>ArgumentNullException.ThrowIfNull</c>.</summary>
+    /// <param name="context">The compilation-start context supplied by the Roslyn analyzer driver.</param>
     private static void OnCompilationStart(CompilationStartAnalysisContext context)
     {
         // ArgumentNullException.ThrowIfNull exists on the BCL since .NET 6; where it does, the
@@ -43,6 +46,8 @@ public sealed class ThrowIfNullAnalyzer : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(AnalyzeCoalesce, SyntaxKind.CoalesceExpression);
     }
 
+    /// <summary>Analyzes a <c>??</c> expression and reports NEA0001 when it is a null-coalescing throw of <see cref="ArgumentNullException"/>.</summary>
+    /// <param name="context">The syntax-node analysis context for the coalesce expression being visited.</param>
     private static void AnalyzeCoalesce(SyntaxNodeAnalysisContext context)
     {
         var binary = (BinaryExpressionSyntax)context.Node;
@@ -69,6 +74,8 @@ public sealed class ThrowIfNullAnalyzer : DiagnosticAnalyzer
         );
     }
 
+    /// <summary>Analyzes an <c>if</c> statement and reports NEA0001 when it is a null-check-then-throw of <see cref="ArgumentNullException"/>.</summary>
+    /// <param name="context">The syntax-node analysis context for the <c>if</c> statement being visited.</param>
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
         var ifStatement = (IfStatementSyntax)context.Node;

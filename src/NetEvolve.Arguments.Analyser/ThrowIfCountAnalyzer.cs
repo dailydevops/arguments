@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ThrowIfCountAnalyzer : DiagnosticAnalyzer
 {
+    /// <summary>The fully-qualified metadata name of <see cref="ArgumentException"/>.</summary>
     private const string ArgumentExceptionMetadataName = "System.ArgumentException";
 
     /// <inheritdoc />
@@ -30,6 +31,8 @@ public sealed class ThrowIfCountAnalyzer : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.IfStatement);
     }
 
+    /// <summary>Analyzes an <c>if</c> statement and reports NEA0007 when it is a collection-count-comparison-then-throw of <see cref="ArgumentException"/>.</summary>
+    /// <param name="context">The syntax-node analysis context for the <c>if</c> statement being visited.</param>
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
         var ifStatement = (IfStatementSyntax)context.Node;
@@ -73,6 +76,10 @@ public sealed class ThrowIfCountAnalyzer : DiagnosticAnalyzer
         );
     }
 
+    /// <summary>Recognizes <c>arg.Count &gt; max</c>, <c>arg.Count &lt; min</c>, and the combined range <c>arg.Count &lt; min || arg.Count &gt; max</c> (both the <c>.Count</c> property and the <c>.Count()</c> LINQ extension method).</summary>
+    /// <param name="condition">The <c>if</c> statement's condition expression.</param>
+    /// <param name="comparison">When this method returns <see langword="true"/>, the recognized comparison; otherwise, <see langword="null"/>.</param>
+    /// <returns><see langword="true"/> if <paramref name="condition"/> is a recognized collection-count comparison shape; otherwise, <see langword="false"/>.</returns>
     internal static bool TryGetCountComparison(ExpressionSyntax condition, out ComparisonResult? comparison)
     {
         condition = SyntaxHelpers.Unwrap(condition);
@@ -117,6 +124,10 @@ public sealed class ThrowIfCountAnalyzer : DiagnosticAnalyzer
         return comparison is not null;
     }
 
+    /// <summary>Recognizes a <c>.Count</c> property access or a parameterless <c>.Count()</c> LINQ extension method call, and reports its qualifying expression.</summary>
+    /// <param name="expression">The expression to test, typically one side of a comparison.</param>
+    /// <param name="target">When this method returns <see langword="true"/>, the expression the count was taken of; otherwise, <see langword="null"/>.</param>
+    /// <returns><see langword="true"/> if <paramref name="expression"/> is a recognized count-access shape; otherwise, <see langword="false"/>.</returns>
     private static bool TryGetCountTarget(ExpressionSyntax expression, out ExpressionSyntax? target)
     {
         var unwrapped = SyntaxHelpers.Unwrap(expression);

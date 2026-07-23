@@ -38,16 +38,31 @@ public sealed class ThrowIfLengthAnalyzerTests
     }
 
     [Test]
-    public async Task Analyze_WhenThrowingArgumentOutOfRangeException_DoesNotReportDiagnostic()
+    [Arguments("if (argument.Length > 100) throw new ArgumentOutOfRangeException(nameof(argument));")]
+    [Arguments("if (argument.Count > 100) throw new ArgumentException(nameof(argument));")]
+    [Arguments("if (argument.Length == 100) throw new ArgumentException(nameof(argument));")]
+    [Arguments("if (argument.Length < 5 || other.Length > 100) throw new ArgumentException(nameof(argument));")]
+    [Arguments(
+        """
+            if (argument.Length > 100)
+            {
+                throw new ArgumentException(nameof(argument));
+            }
+            else
+            {
+            }
+            """
+    )]
+    public async Task Analyze_WhenConditionOrExceptionIsNotRecognized_DoesNotReportDiagnostic(string statement)
     {
-        const string source = """
+        var source = $$"""
             using System;
 
             class C
             {
-                void M(string argument)
+                void M(string argument, string other)
                 {
-                    if (argument.Length > 100) throw new ArgumentOutOfRangeException(nameof(argument));
+                    {{statement}}
                 }
             }
             """;

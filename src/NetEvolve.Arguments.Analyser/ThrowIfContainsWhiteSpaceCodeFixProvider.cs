@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Formatting;
 [Shared]
 public sealed class ThrowIfContainsWhiteSpaceCodeFixProvider : CodeFixProvider
 {
+    /// <summary>The display title shown for this fix in the lightbulb/quick-actions menu.</summary>
     private const string Title = "Use ArgumentException.ThrowIfContainsWhiteSpace";
 
     /// <inheritdoc />
@@ -53,6 +54,11 @@ public sealed class ThrowIfContainsWhiteSpaceCodeFixProvider : CodeFixProvider
         );
     }
 
+    /// <summary>Rewrites the matched <c>if</c> statement into a single <c>ArgumentException.ThrowIfContainsWhiteSpace</c> call.</summary>
+    /// <param name="document">The document containing the diagnostic.</param>
+    /// <param name="ifStatement">The <c>if</c> statement to replace.</param>
+    /// <param name="cancellationToken">The token used to cancel the fix.</param>
+    /// <returns>The updated document, or the original document if the pattern can no longer be matched.</returns>
     private static async Task<Document> ApplyFixAsync(
         Document document,
         IfStatementSyntax ifStatement,

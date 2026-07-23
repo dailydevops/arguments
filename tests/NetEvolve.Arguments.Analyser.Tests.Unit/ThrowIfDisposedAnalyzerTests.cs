@@ -48,6 +48,40 @@ public sealed class ThrowIfDisposedAnalyzerTests
     }
 
     [Test]
+    [Arguments("if (_disposed) throw new ArgumentException(\"disposed\");")]
+    [Arguments(
+        """
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(GetType().Name);
+            }
+            else
+            {
+            }
+            """
+    )]
+    public async Task Analyze_WhenExceptionTypeOrShapeIsNotRecognized_DoesNotReportDiagnostic(string statement)
+    {
+        var source = $$"""
+            using System;
+
+            class C
+            {
+                private bool _disposed;
+
+                void M()
+                {
+                    {{statement}}
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfDisposedAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
     public async Task Analyze_WhenBuiltInThrowIfAvailable_DoesNotReportDiagnostic()
     {
         const string source = """

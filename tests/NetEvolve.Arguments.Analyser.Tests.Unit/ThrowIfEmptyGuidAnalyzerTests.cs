@@ -27,6 +27,40 @@ public sealed class ThrowIfEmptyGuidAnalyzerTests
     }
 
     [Test]
+    [Arguments("if (argument == Guid.Empty) throw new ArgumentNullException(nameof(argument));")]
+    [Arguments("if (argument == Guid.Empty) throw new ArgumentException(nameof(argument), \"custom\");")]
+    [Arguments("if (argument == Guid.NewGuid()) throw new ArgumentException(nameof(argument));")]
+    [Arguments(
+        """
+            if (argument == Guid.Empty)
+            {
+                throw new ArgumentException(nameof(argument));
+            }
+            else
+            {
+            }
+            """
+    )]
+    public async Task Analyze_WhenConditionOrExceptionIsNotRecognized_DoesNotReportDiagnostic(string statement)
+    {
+        var source = $$"""
+            using System;
+
+            class C
+            {
+                void M(Guid argument)
+                {
+                    {{statement}}
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfEmptyGuidAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
     public async Task CodeFix_WhenApplied_ReplacesWithThrowIfEmptyGuidCall()
     {
         const string source = """
