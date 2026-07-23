@@ -30,7 +30,7 @@ public sealed class ThrowIfDefaultAnalyzerTests
 
     [Test]
     [Arguments("if (argument.Equals(default)) throw new ArgumentNullException(nameof(argument));")]
-    [Arguments("if (argument.Equals(default)) throw new ArgumentException(nameof(argument), \"custom\");")]
+    [Arguments("if (argument.Equals(default)) throw new ArgumentException(\"custom\", nameof(argument));")]
     [Arguments("if (argument.Equals(1)) throw new ArgumentException(nameof(argument));")]
     [Arguments(
         """

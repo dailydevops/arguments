@@ -28,7 +28,7 @@ public sealed class ThrowIfEmptyGuidAnalyzerTests
 
     [Test]
     [Arguments("if (argument == Guid.Empty) throw new ArgumentNullException(nameof(argument));")]
-    [Arguments("if (argument == Guid.Empty) throw new ArgumentException(nameof(argument), \"custom\");")]
+    [Arguments("if (argument == Guid.Empty) throw new ArgumentException(\"custom\", nameof(argument));")]
     [Arguments("if (argument == Guid.NewGuid()) throw new ArgumentException(nameof(argument));")]
     [Arguments(
         """
