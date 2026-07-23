@@ -17,8 +17,10 @@
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/NetEvolve.Arguments/NetEvolve.Arguments.csproj" />
+    <Project Path="src/NetEvolve.Arguments.Analyser/NetEvolve.Arguments.Analyser.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/NetEvolve.Arguments.Tests.Unit/NetEvolve.Arguments.Tests.Unit.csproj" />
+    <Project Path="tests/NetEvolve.Arguments.Analyser.Tests.Unit/NetEvolve.Arguments.Analyser.Tests.Unit.csproj" />
   </Folder>
 </Solution>

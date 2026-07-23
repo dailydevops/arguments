@@ -1,0 +1,119 @@
+namespace NetEvolve.Arguments.Analyser;
+
+using System;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+/// <summary>Reports null-check-then-throw patterns that can be replaced by <c>ArgumentNullException.ThrowIfNull</c>.</summary>
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+public sealed class ThrowIfNullAnalyzer : DiagnosticAnalyzer
+{
+    private const string ArgumentNullExceptionMetadataName = "System.ArgumentNullException";
+
+    /// <inheritdoc />
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+        ImmutableArray.Create(DiagnosticDescriptors.ThrowIfNull);
+
+    /// <inheritdoc />
+    public override void Initialize(AnalysisContext context)
+    {
+        if (context is null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+        context.EnableConcurrentExecution();
+        context.RegisterCompilationStartAction(OnCompilationStart);
+    }
+
+    private static void OnCompilationStart(CompilationStartAnalysisContext context)
+    {
+        // ArgumentNullException.ThrowIfNull exists on the BCL since .NET 6; where it does, the
+        // built-in CA1510 analyzer already covers this pattern, so stay silent to avoid duplicates.
+        if (SyntaxHelpers.HasBuiltInMember(context.Compilation, ArgumentNullExceptionMetadataName, "ThrowIfNull"))
+        {
+            return;
+        }
+
+        context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.IfStatement);
+        context.RegisterSyntaxNodeAction(AnalyzeCoalesce, SyntaxKind.CoalesceExpression);
+    }
+
+    private static void AnalyzeCoalesce(SyntaxNodeAnalysisContext context)
+    {
+        var binary = (BinaryExpressionSyntax)context.Node;
+
+        if (
+            !SyntaxHelpers.TryGetCoalesceNullCheck(
+                context.SemanticModel,
+                binary,
+                context.CancellationToken,
+                out var argument
+            ) || argument is null
+        )
+        {
+            return;
+        }
+
+        if (binary.FirstAncestorOrSelf<StatementSyntax>() is null)
+        {
+            return;
+        }
+
+        context.ReportDiagnostic(
+            Diagnostic.Create(DiagnosticDescriptors.ThrowIfNull, binary.GetLocation(), argument.ToString())
+        );
+    }
+
+    private static void Analyze(SyntaxNodeAnalysisContext context)
+    {
+        var ifStatement = (IfStatementSyntax)context.Node;
+
+        if (ifStatement.Else is not null)
+        {
+            return;
+        }
+
+        if (!SyntaxHelpers.TryGetNullCheckedExpression(ifStatement.Condition, out var argument) || argument is null)
+        {
+            return;
+        }
+
+        var throwStatement = SyntaxHelpers.GetSingleThrowStatement(ifStatement.Statement);
+
+        if (throwStatement?.Expression is not ObjectCreationExpressionSyntax objectCreation)
+        {
+            return;
+        }
+
+        if (
+            !SyntaxHelpers.IsExceptionType(
+                context.SemanticModel,
+                objectCreation,
+                ArgumentNullExceptionMetadataName,
+                context.CancellationToken
+            )
+        )
+        {
+            return;
+        }
+
+        if (objectCreation.ArgumentList is null)
+        {
+            return;
+        }
+
+        if (!SyntaxHelpers.IsSingleParamNameArgument(argument, objectCreation.ArgumentList))
+        {
+            return;
+        }
+
+        context.ReportDiagnostic(
+            Diagnostic.Create(DiagnosticDescriptors.ThrowIfNull, ifStatement.GetLocation(), argument.ToString())
+        );
+    }
+}
