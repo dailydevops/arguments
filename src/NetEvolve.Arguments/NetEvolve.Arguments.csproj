@@ -9,4 +9,7 @@
     <PackageTags>guard;clause;exceptions;argument-validation;polyfill;null-check;parameter-validation;defensive-programming;argument-exception;argumentnullexception</PackageTags>
     <PackageReleaseNotes>$(PackageProjectUrl)/releases/</PackageReleaseNotes>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NetEvolve.Arguments.Analyser\NetEvolve.Arguments.Analyser.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
 </Project>
