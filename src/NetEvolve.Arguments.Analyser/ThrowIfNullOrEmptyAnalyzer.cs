@@ -51,29 +51,18 @@ public sealed class ThrowIfNullOrEmptyAnalyzer : DiagnosticAnalyzer
     {
         var ifStatement = (IfStatementSyntax)context.Node;
 
-        if (ifStatement.Else is not null)
-        {
-            return;
-        }
-
         if (!TryGetStringCheck(ifStatement.Condition, out var argument, out var helperName) || argument is null)
         {
             return;
         }
 
-        var throwStatement = SyntaxHelpers.GetSingleThrowStatement(ifStatement.Statement);
-
-        if (throwStatement?.Expression is not ObjectCreationExpressionSyntax objectCreation)
-        {
-            return;
-        }
-
         if (
-            !SyntaxHelpers.IsExceptionType(
+            !SyntaxHelpers.TryGetThrownException(
+                ifStatement,
                 context.SemanticModel,
-                objectCreation,
                 ArgumentExceptionMetadataName,
-                context.CancellationToken
+                context.CancellationToken,
+                out _
             )
         )
         {

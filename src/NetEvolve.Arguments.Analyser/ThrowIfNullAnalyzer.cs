@@ -80,36 +80,20 @@ public sealed class ThrowIfNullAnalyzer : DiagnosticAnalyzer
     {
         var ifStatement = (IfStatementSyntax)context.Node;
 
-        if (ifStatement.Else is not null)
-        {
-            return;
-        }
-
         if (!SyntaxHelpers.TryGetNullCheckedExpression(ifStatement.Condition, out var argument) || argument is null)
         {
             return;
         }
 
-        var throwStatement = SyntaxHelpers.GetSingleThrowStatement(ifStatement.Statement);
-
-        if (throwStatement?.Expression is not ObjectCreationExpressionSyntax objectCreation)
-        {
-            return;
-        }
-
         if (
-            !SyntaxHelpers.IsExceptionType(
+            !SyntaxHelpers.TryGetThrownException(
+                ifStatement,
                 context.SemanticModel,
-                objectCreation,
                 ArgumentNullExceptionMetadataName,
-                context.CancellationToken
-            )
+                context.CancellationToken,
+                out var objectCreation
+            ) || objectCreation!.ArgumentList is null
         )
-        {
-            return;
-        }
-
-        if (objectCreation.ArgumentList is null)
         {
             return;
         }

@@ -80,6 +80,47 @@ internal static class SyntaxHelpers
     }
 
     /// <summary>
+    /// Recognizes the common shape every rule in this package requires of the <c>if</c> statement's body: no <c>else</c>
+    /// clause, a single <c>throw</c> statement, and an object-creation expression of exactly the given exception type.
+    /// </summary>
+    /// <param name="ifStatement">The <c>if</c> statement to inspect.</param>
+    /// <param name="semanticModel">The semantic model used to resolve the thrown exception's type.</param>
+    /// <param name="exceptionMetadataName">The fully-qualified metadata name of the expected exception type.</param>
+    /// <param name="cancellationToken">The token used to cancel semantic-model lookups.</param>
+    /// <param name="objectCreation">When this method returns <see langword="true"/>, the matched <c>new</c> expression; otherwise, <see langword="null"/>.</param>
+    /// <returns><see langword="true"/> if the <c>if</c> statement matches the shape; otherwise, <see langword="false"/>.</returns>
+    public static bool TryGetThrownException(
+        IfStatementSyntax ifStatement,
+        SemanticModel semanticModel,
+        string exceptionMetadataName,
+        CancellationToken cancellationToken,
+        out ObjectCreationExpressionSyntax? objectCreation
+    )
+    {
+        objectCreation = null;
+
+        if (ifStatement.Else is not null)
+        {
+            return false;
+        }
+
+        var throwStatement = GetSingleThrowStatement(ifStatement.Statement);
+
+        if (throwStatement?.Expression is not ObjectCreationExpressionSyntax creation)
+        {
+            return false;
+        }
+
+        if (!IsExceptionType(semanticModel, creation, exceptionMetadataName, cancellationToken))
+        {
+            return false;
+        }
+
+        objectCreation = creation;
+        return true;
+    }
+
+    /// <summary>
     /// Recognizes an <c>if</c> condition that is true precisely when an expression is <see langword="null"/> — covering
     /// <c>is null</c>/<c>is not null</c>, <c>==</c>/<c>!=</c>, <c>ReferenceEquals</c>, and any number of enclosing <c>!</c> negations.
     /// </summary>

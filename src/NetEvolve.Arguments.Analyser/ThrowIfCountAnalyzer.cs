@@ -37,29 +37,18 @@ public sealed class ThrowIfCountAnalyzer : DiagnosticAnalyzer
     {
         var ifStatement = (IfStatementSyntax)context.Node;
 
-        if (ifStatement.Else is not null)
-        {
-            return;
-        }
-
         if (!TryGetCountComparison(ifStatement.Condition, out var comparison) || comparison is null)
         {
             return;
         }
 
-        var throwStatement = SyntaxHelpers.GetSingleThrowStatement(ifStatement.Statement);
-
-        if (throwStatement?.Expression is not ObjectCreationExpressionSyntax objectCreation)
-        {
-            return;
-        }
-
         if (
-            !SyntaxHelpers.IsExceptionType(
+            !SyntaxHelpers.TryGetThrownException(
+                ifStatement,
                 context.SemanticModel,
-                objectCreation,
                 ArgumentExceptionMetadataName,
-                context.CancellationToken
+                context.CancellationToken,
+                out _
             )
         )
         {

@@ -51,35 +51,21 @@ public sealed class ThrowIfOutOfRangeAnalyzer : DiagnosticAnalyzer
     {
         var ifStatement = (IfStatementSyntax)context.Node;
 
-        if (ifStatement.Else is not null)
-        {
-            return;
-        }
-
         if (!TryGetComparison(ifStatement.Condition, out var comparison) || comparison is null)
         {
             return;
         }
 
-        var throwStatement = SyntaxHelpers.GetSingleThrowStatement(ifStatement.Statement);
-
-        if (throwStatement?.Expression is not ObjectCreationExpressionSyntax objectCreation)
-        {
-            return;
-        }
-
-        if (objectCreation.ArgumentList is null || objectCreation.ArgumentList.Arguments.Count is 0 or > 3)
-        {
-            return;
-        }
-
         if (
-            !SyntaxHelpers.IsExceptionType(
+            !SyntaxHelpers.TryGetThrownException(
+                ifStatement,
                 context.SemanticModel,
-                objectCreation,
                 ArgumentOutOfRangeExceptionMetadataName,
-                context.CancellationToken
+                context.CancellationToken,
+                out var objectCreation
             )
+            || objectCreation!.ArgumentList is null
+            || objectCreation.ArgumentList.Arguments.Count is 0 or > 3
         )
         {
             return;
@@ -125,32 +111,7 @@ public sealed class ThrowIfOutOfRangeAnalyzer : DiagnosticAnalyzer
 
         if (condition is BinaryExpressionSyntax { RawKind: (int)SyntaxKind.LogicalOrExpression } orExpression)
         {
-            if (
-                SyntaxHelpers.Unwrap(orExpression.Left)
-                    is BinaryExpressionSyntax { RawKind: (int)SyntaxKind.LessThanExpression } lessThan
-                && SyntaxHelpers.Unwrap(orExpression.Right)
-                    is BinaryExpressionSyntax { RawKind: (int)SyntaxKind.GreaterThanExpression } greaterThan
-            )
-            {
-                var lessThanValue = SyntaxHelpers.Unwrap(lessThan.Left);
-                var greaterThanValue = SyntaxHelpers.Unwrap(greaterThan.Left);
-
-                if (
-                    lessThanValue is not LiteralExpressionSyntax
-                    && SyntaxHelpers.AreEquivalent(lessThanValue, greaterThanValue)
-                )
-                {
-                    comparison = new ComparisonResult(
-                        "ThrowIfOutOfRange",
-                        lessThanValue,
-                        lessThan.Right,
-                        greaterThan.Right
-                    );
-                    return true;
-                }
-            }
-
-            return false;
+            return TryGetCombinedRangeComparison(orExpression, out comparison);
         }
 
         if (condition is not BinaryExpressionSyntax binary)
@@ -187,5 +148,38 @@ public sealed class ThrowIfOutOfRangeAnalyzer : DiagnosticAnalyzer
         };
 
         return comparison is not null;
+    }
+
+    /// <summary>Recognizes the combined-range shape <c>value &lt; min || value &gt; max</c> and maps it to <c>ThrowIfOutOfRange</c>.</summary>
+    /// <param name="orExpression">The <c>||</c> expression to inspect.</param>
+    /// <param name="comparison">When this method returns <see langword="true"/>, the recognized comparison; otherwise, <see langword="null"/>.</param>
+    /// <returns><see langword="true"/> if <paramref name="orExpression"/> is a recognized combined-range shape; otherwise, <see langword="false"/>.</returns>
+    private static bool TryGetCombinedRangeComparison(
+        BinaryExpressionSyntax orExpression,
+        out ComparisonResult? comparison
+    )
+    {
+        comparison = null;
+
+        if (
+            SyntaxHelpers.Unwrap(orExpression.Left)
+                is not BinaryExpressionSyntax { RawKind: (int)SyntaxKind.LessThanExpression } lessThan
+            || SyntaxHelpers.Unwrap(orExpression.Right)
+                is not BinaryExpressionSyntax { RawKind: (int)SyntaxKind.GreaterThanExpression } greaterThan
+        )
+        {
+            return false;
+        }
+
+        var lessThanValue = SyntaxHelpers.Unwrap(lessThan.Left);
+        var greaterThanValue = SyntaxHelpers.Unwrap(greaterThan.Left);
+
+        if (lessThanValue is LiteralExpressionSyntax || !SyntaxHelpers.AreEquivalent(lessThanValue, greaterThanValue))
+        {
+            return false;
+        }
+
+        comparison = new ComparisonResult("ThrowIfOutOfRange", lessThanValue, lessThan.Right, greaterThan.Right);
+        return true;
     }
 }
