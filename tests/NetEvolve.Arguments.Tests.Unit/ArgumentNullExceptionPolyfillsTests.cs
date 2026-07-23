@@ -52,7 +52,9 @@ public sealed class ArgumentNullExceptionPolyfillsTests
     }
 
     [Test]
+#pragma warning disable S6640 // Make sure that using "unsafe" is safe here.
     public unsafe void ThrowIfNull_Pointer_WhenArgumentIsNull_ThrowsArgumentNullException()
+#pragma warning restore S6640 // Make sure that using "unsafe" is safe here.
     {
         // Arrange
         int* argument = null;
@@ -65,7 +67,9 @@ public sealed class ArgumentNullExceptionPolyfillsTests
     }
 
     [Test]
+#pragma warning disable S6640 // Make sure that using "unsafe" is safe here.
     public unsafe void ThrowIfNull_Pointer_WhenArgumentIsNotNull_DoesNotThrow()
+#pragma warning restore S6640 // Make sure that using "unsafe" is safe here.
     {
         // Arrange
         var value = 42;

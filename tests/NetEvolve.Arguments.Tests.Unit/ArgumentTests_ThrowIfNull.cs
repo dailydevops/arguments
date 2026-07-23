@@ -31,7 +31,9 @@ public sealed partial class ArgumentTests
     }
 
     [Test]
+#pragma warning disable S6640 // Make sure that using "unsafe" is safe here.
     public unsafe void ThrowIfNull_WhenArgumentIsNullPointer_ThrowsArgumentNullException()
+#pragma warning restore S6640 // Make sure that using "unsafe" is safe here.
     {
         // Arrange
         int* argument = null;
