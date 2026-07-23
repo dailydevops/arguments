@@ -1,4 +1,4 @@
-namespace NetEvolve.Arguments.Analyser.Tests.Unit;
+﻿namespace NetEvolve.Arguments.Analyser.Tests.Unit;
 
 public sealed class ThrowIfOutOfRangeAnalyzerTests
 {
@@ -41,6 +41,34 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
         );
 
         _ = await Assert.That(fixedSource).Contains($"ArgumentOutOfRangeException.{expectedInvocation}");
+    }
+
+    [Test]
+    public async Task Analyze_WhenBoundIsNotALiteral_ReportsDiagnosticAndFixes()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(int argument, int other)
+                {
+                    if (argument < other) throw new ArgumentOutOfRangeException(nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
+
+        var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
+            new ThrowIfOutOfRangeAnalyzer(),
+            new ThrowIfOutOfRangeCodeFixProvider(),
+            source
+        );
+
+        _ = await Assert.That(fixedSource).Contains("ArgumentOutOfRangeException.ThrowIfLessThan(argument, other);");
     }
 
     [Test]
