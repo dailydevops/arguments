@@ -62,17 +62,17 @@ public class UserService
 
 Each rule has a dedicated documentation page with the full list of recognized shapes, examples, and suppression instructions.
 
-| Rule                                                                                    | Title                                             | Mirrors                                                                                        |
-| ----------------------------------------------------------------------------------------- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| [NEA0001](https://github.com/dailydevops/arguments/blob/main/docs/analysers/NEA0001.md) | Use ArgumentNullException.ThrowIfNull             | [CA1510](https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1510)     |
-| [NEA0002](https://github.com/dailydevops/arguments/blob/main/docs/analysers/NEA0002.md) | Use ArgumentException throw helper                | [CA1511](https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1511)     |
-| [NEA0003](https://github.com/dailydevops/arguments/blob/main/docs/analysers/NEA0003.md) | Use ArgumentOutOfRangeException throw helper      | [CA1512](https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1512)     |
-| [NEA0004](https://github.com/dailydevops/arguments/blob/main/docs/analysers/NEA0004.md) | Use ArgumentException.ThrowIfDefault               | *(NetEvolve.Arguments-only, no CA equivalent)*                                                    |
-| [NEA0005](https://github.com/dailydevops/arguments/blob/main/docs/analysers/NEA0005.md) | Use ObjectDisposedException.ThrowIf                | [CA1513](https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1513)     |
-| [NEA0006](https://github.com/dailydevops/arguments/blob/main/docs/analysers/NEA0006.md) | Use ArgumentException string-length throw helper  | *(NetEvolve.Arguments-only, no CA equivalent)*                                                    |
-| [NEA0007](https://github.com/dailydevops/arguments/blob/main/docs/analysers/NEA0007.md) | Use ArgumentException collection-count throw helper | *(NetEvolve.Arguments-only, no CA equivalent)*                                                    |
-| [NEA0008](https://github.com/dailydevops/arguments/blob/main/docs/analysers/NEA0008.md) | Use ArgumentException.ThrowIfContainsWhiteSpace    | *(NetEvolve.Arguments-only, no CA equivalent)*                                                    |
-| [NEA0009](https://github.com/dailydevops/arguments/blob/main/docs/analysers/NEA0009.md) | Use ArgumentException.ThrowIfEmptyGuid             | *(NetEvolve.Arguments-only, no CA equivalent)*                                                    |
+| Rule                                                                                    | Title                                               | Mirrors                                                                                      |
+| --------------------------------------------------------------------------------------- | --------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| [NEA0001](https://github.com/dailydevops/arguments/blob/main/docs/analysers/NEA0001.md) | Use ArgumentNullException.ThrowIfNull               | [CA1510](https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1510) |
+| [NEA0002](https://github.com/dailydevops/arguments/blob/main/docs/analysers/NEA0002.md) | Use ArgumentException throw helper                  | [CA1511](https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1511) |
+| [NEA0003](https://github.com/dailydevops/arguments/blob/main/docs/analysers/NEA0003.md) | Use ArgumentOutOfRangeException throw helper        | [CA1512](https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1512) |
+| [NEA0004](https://github.com/dailydevops/arguments/blob/main/docs/analysers/NEA0004.md) | Use ArgumentException.ThrowIfDefault                | _(NetEvolve.Arguments-only, no CA equivalent)_                                               |
+| [NEA0005](https://github.com/dailydevops/arguments/blob/main/docs/analysers/NEA0005.md) | Use ObjectDisposedException.ThrowIf                 | [CA1513](https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1513) |
+| [NEA0006](https://github.com/dailydevops/arguments/blob/main/docs/analysers/NEA0006.md) | Use ArgumentException string-length throw helper    | _(NetEvolve.Arguments-only, no CA equivalent)_                                               |
+| [NEA0007](https://github.com/dailydevops/arguments/blob/main/docs/analysers/NEA0007.md) | Use ArgumentException collection-count throw helper | _(NetEvolve.Arguments-only, no CA equivalent)_                                               |
+| [NEA0008](https://github.com/dailydevops/arguments/blob/main/docs/analysers/NEA0008.md) | Use ArgumentException.ThrowIfContainsWhiteSpace     | _(NetEvolve.Arguments-only, no CA equivalent)_                                               |
+| [NEA0009](https://github.com/dailydevops/arguments/blob/main/docs/analysers/NEA0009.md) | Use ArgumentException.ThrowIfEmptyGuid              | _(NetEvolve.Arguments-only, no CA equivalent)_                                               |
 
 ### Example: NEA0001 (null check)
 
