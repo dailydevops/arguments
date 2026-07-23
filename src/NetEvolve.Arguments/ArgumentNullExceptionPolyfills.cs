@@ -38,10 +38,12 @@ public static class ArgumentNullExceptionPolyfills
         /// <param name="paramName">The name of the parameter with which <paramref name="argument"/> corresponds.</param>
         /// <exception cref="ArgumentNullException"><paramref name="argument"/> is <see langword="null"/>.</exception>
         /// <seealso href="https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception.throwifnull?view=net-10.0#system-argumentnullexception-throwifnull(system-void*-system-string)" />
+#pragma warning disable S6640 // Make sure that using "unsafe" is safe here.
         public static unsafe void ThrowIfNull(
             void* argument,
             [CallerArgumentExpression(nameof(argument))] string? paramName = null
         )
+#pragma warning restore S6640 // Make sure that using "unsafe" is safe here.
         {
             if (argument is null)
             {
