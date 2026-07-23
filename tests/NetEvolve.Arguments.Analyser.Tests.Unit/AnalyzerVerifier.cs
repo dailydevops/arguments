@@ -87,7 +87,12 @@ internal static class AnalyzerVerifier
 
         await codeFix.RegisterCodeFixesAsync(fixContext).ConfigureAwait(false);
 
-        var operations = await registeredAction!.GetOperationsAsync(CancellationToken.None).ConfigureAwait(false);
+        if (registeredAction is null)
+        {
+            throw new InvalidOperationException("No code fix action was registered.");
+        }
+
+        var operations = await registeredAction.GetOperationsAsync(CancellationToken.None).ConfigureAwait(false);
         var applyChanges = operations.OfType<ApplyChangesOperation>().Single();
         var newDocument = applyChanges.ChangedSolution.GetDocument(document.Id)!;
         var newRoot = await newDocument.GetSyntaxRootAsync().ConfigureAwait(false);

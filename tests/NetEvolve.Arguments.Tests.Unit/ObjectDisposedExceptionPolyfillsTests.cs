@@ -49,9 +49,9 @@ public sealed class ObjectDisposedExceptionPolyfillsTests
     [Test]
     public async Task ThrowIf_WithNullInstance_WhenConditionIsTrue_ThrowsObjectDisposedException()
     {
-        object? instance = null;
+        object instance = null!;
 
-        void Act() => ObjectDisposedException.ThrowIf(true, instance!);
+        void Act() => ObjectDisposedException.ThrowIf(true, instance);
 
         var exception = Assert.Throws<ObjectDisposedException>(Act);
         _ = await Assert.That(exception.ObjectName).IsEqualTo(string.Empty);
@@ -60,9 +60,9 @@ public sealed class ObjectDisposedExceptionPolyfillsTests
     [Test]
     public async Task ThrowIf_WithNullType_WhenConditionIsTrue_ThrowsObjectDisposedException()
     {
-        Type? type = null;
+        Type type = null!;
 
-        void Act() => ObjectDisposedException.ThrowIf(true, type!);
+        void Act() => ObjectDisposedException.ThrowIf(true, type);
 
         var exception = Assert.Throws<ObjectDisposedException>(Act);
         _ = await Assert.That(exception.ObjectName).IsEqualTo(string.Empty);
