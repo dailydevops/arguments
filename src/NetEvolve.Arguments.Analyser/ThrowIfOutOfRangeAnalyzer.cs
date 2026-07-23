@@ -81,11 +81,20 @@ public sealed class ThrowIfOutOfRangeAnalyzer : DiagnosticAnalyzer
         }
 
         var value = comparison.Value;
-        var args = value.OtherExpression2 is null
-            ? value.OtherExpression is null
-                ? value.ValueExpression.ToString()
-                : $"{value.ValueExpression}, {value.OtherExpression}"
-            : $"{value.ValueExpression}, {value.OtherExpression}, {value.OtherExpression2}";
+        string args;
+
+        if (value.OtherExpression2 is not null)
+        {
+            args = $"{value.ValueExpression}, {value.OtherExpression}, {value.OtherExpression2}";
+        }
+        else if (value.OtherExpression is not null)
+        {
+            args = $"{value.ValueExpression}, {value.OtherExpression}";
+        }
+        else
+        {
+            args = value.ValueExpression.ToString();
+        }
 
         context.ReportDiagnostic(
             Diagnostic.Create(

@@ -76,11 +76,20 @@ public sealed class ThrowIfOutOfRangeCodeFixProvider : CodeFixProvider
         }
 
         var value = comparison.Value;
-        var arguments =
-            value.OtherExpression2 is not null
-                ? new[] { value.ValueExpression, value.OtherExpression!, value.OtherExpression2 }
-            : value.OtherExpression is null ? new[] { value.ValueExpression }
-            : new[] { value.ValueExpression, value.OtherExpression };
+        ExpressionSyntax[] arguments;
+
+        if (value.OtherExpression2 is not null)
+        {
+            arguments = new[] { value.ValueExpression, value.OtherExpression!, value.OtherExpression2 };
+        }
+        else if (value.OtherExpression is not null)
+        {
+            arguments = new[] { value.ValueExpression, value.OtherExpression };
+        }
+        else
+        {
+            arguments = new[] { value.ValueExpression };
+        }
 
         var invocation = SyntaxFactory
             .ExpressionStatement(

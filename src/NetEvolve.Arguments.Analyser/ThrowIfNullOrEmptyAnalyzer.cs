@@ -32,8 +32,8 @@ public sealed class ThrowIfNullOrEmptyAnalyzer : DiagnosticAnalyzer
 
     private static void OnCompilationStart(CompilationStartAnalysisContext context)
     {
-        // ArgumentException.ThrowIfNullOrEmpty/ThrowIfNullOrWhiteSpace exist on the BCL since .NET 8;
-        // where they do, the built-in CA1511 analyzer already covers this pattern, so stay silent.
+        // The BCL exposes these throw-helpers since .NET 8; where it does, the built-in
+        // CA1511 analyzer already covers this pattern, so stay silent to avoid duplicates.
         if (SyntaxHelpers.HasBuiltInMember(context.Compilation, ArgumentExceptionMetadataName, "ThrowIfNullOrEmpty"))
         {
             return;
