@@ -2,6 +2,8 @@ namespace NetEvolve.Arguments.Analyser;
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -13,6 +15,12 @@ public sealed class ThrowIfCountAnalyzer : DiagnosticAnalyzer
 {
     /// <summary>The fully-qualified metadata name of <see cref="ArgumentException"/>.</summary>
     private const string ArgumentExceptionMetadataName = "System.ArgumentException";
+
+    /// <summary>The fully-qualified metadata name of the open generic <c>IEnumerable&lt;T&gt;</c> interface.</summary>
+    private const string EnumerableInterfaceMetadataName = "System.Collections.Generic.IEnumerable`1";
+
+    /// <summary>The fully-qualified metadata name of <see cref="System.Linq.Enumerable"/>, the declaring type of the LINQ <c>Count()</c> extension method.</summary>
+    private const string EnumerableTypeMetadataName = "System.Linq.Enumerable";
 
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
@@ -38,6 +46,11 @@ public sealed class ThrowIfCountAnalyzer : DiagnosticAnalyzer
         var ifStatement = (IfStatementSyntax)context.Node;
 
         if (!TryGetCountComparison(ifStatement.Condition, out var comparison) || comparison is null)
+        {
+            return;
+        }
+
+        if (!IsSupportedCountAccess(comparison.Value.ValueExpression, context.SemanticModel, context.CancellationToken))
         {
             return;
         }
@@ -141,5 +154,92 @@ public sealed class ThrowIfCountAnalyzer : DiagnosticAnalyzer
 
         target = null;
         return false;
+    }
+
+    /// <summary>
+    /// Determines whether the resolved <c>.Count</c>/<c>.Count()</c> access rooted at <paramref name="target"/> is one
+    /// the <c>ArgumentException.ThrowIfCount*</c> throw-helpers can actually bind to: the receiver must be an array or
+    /// implement <c>IEnumerable&lt;T&gt;</c>, and a <c>.Count()</c> invocation must resolve to the LINQ
+    /// <see cref="System.Linq.Enumerable"/>.<c>Count</c> extension method rather than an unrelated member also named
+    /// <c>Count</c>.
+    /// </summary>
+    /// <param name="target">The receiver expression the count was taken of, as reported by <see cref="TryGetCountTarget"/>.</param>
+    /// <param name="semanticModel">The semantic model used to resolve the receiver's type and the invoked <c>Count</c> symbol.</param>
+    /// <param name="cancellationToken">The token used to cancel semantic-model lookups.</param>
+    /// <returns><see langword="true"/> if the throw-helper substitution would compile; otherwise, <see langword="false"/>.</returns>
+    private static bool IsSupportedCountAccess(
+        ExpressionSyntax target,
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken
+    )
+    {
+        if (!IsSupportedReceiverType(target, semanticModel, cancellationToken))
+        {
+            return false;
+        }
+
+        if (target.Parent is not MemberAccessExpressionSyntax { Name.Identifier.Text: "Count" } countAccess)
+        {
+            return false;
+        }
+
+        if (countAccess.Parent is not InvocationExpressionSyntax { ArgumentList.Arguments.Count: 0 } invocation)
+        {
+            // A plain ".Count" property access; no further symbol resolution is needed.
+            return true;
+        }
+
+        var symbol = semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol;
+        var enumerableType = semanticModel.Compilation.GetTypeByMetadataName(EnumerableTypeMetadataName);
+
+        return symbol is IMethodSymbol methodSymbol
+            && enumerableType is not null
+            && SymbolEqualityComparer.Default.Equals(methodSymbol.ContainingType, enumerableType);
+    }
+
+    /// <summary>
+    /// Determines whether the given expression's type is one the <c>ArgumentException.ThrowIfCount*</c> throw-helpers
+    /// have an overload for: an array, or a type that implements (or is) <c>IEnumerable&lt;T&gt;</c> for some <c>T</c>.
+    /// </summary>
+    /// <param name="target">The receiver expression whose type is checked.</param>
+    /// <param name="semanticModel">The semantic model used to resolve the receiver's type.</param>
+    /// <param name="cancellationToken">The token used to cancel semantic-model lookups.</param>
+    /// <returns><see langword="true"/> if the receiver's type qualifies; otherwise, <see langword="false"/>.</returns>
+    private static bool IsSupportedReceiverType(
+        ExpressionSyntax target,
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken
+    )
+    {
+        var type = semanticModel.GetTypeInfo(target, cancellationToken).Type;
+
+        if (type is null or IErrorTypeSymbol)
+        {
+            return false;
+        }
+
+        if (type is IArrayTypeSymbol)
+        {
+            return true;
+        }
+
+        var enumerableInterface = semanticModel.Compilation.GetTypeByMetadataName(EnumerableInterfaceMetadataName);
+
+        if (enumerableInterface is null)
+        {
+            return false;
+        }
+
+        if (
+            type is INamedTypeSymbol namedType
+            && SymbolEqualityComparer.Default.Equals(namedType.OriginalDefinition, enumerableInterface)
+        )
+        {
+            return true;
+        }
+
+        return type.AllInterfaces.Any(candidate =>
+            SymbolEqualityComparer.Default.Equals(candidate.OriginalDefinition, enumerableInterface)
+        );
     }
 }

@@ -74,4 +74,168 @@ public sealed class ThrowIfCountAnalyzerTests
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
+
+    [Test]
+    public async Task Analyze_WhenReceiverIsUserDefinedNonCollectionType_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class Counter
+            {
+                public int Count { get; }
+            }
+
+            class C
+            {
+                void M(Counter argument)
+                {
+                    if (argument.Count > 100) throw new ArgumentException(nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfCountAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
+    public async Task Analyze_WhenReceiverIsNonGenericCollection_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+            using System.Collections;
+
+            class C
+            {
+                void M(ArrayList argument)
+                {
+                    if (argument.Count > 100) throw new ArgumentException(nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfCountAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
+    public async Task Analyze_WhenCountInvocationIsNotLinqEnumerableCount_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class Counter : IEnumerable<int>
+            {
+                public int Count() => 0;
+
+                public IEnumerator<int> GetEnumerator() => new List<int>().GetEnumerator();
+
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+
+            class C
+            {
+                void M(Counter argument)
+                {
+                    if (argument.Count() > 100) throw new ArgumentException(nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfCountAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
+    public async Task Analyze_WhenReceiverIsArray_ReportsDiagnostic()
+    {
+        const string source = """
+            using System;
+            using System.Linq;
+
+            class C
+            {
+                void M(int[] argument)
+                {
+                    if (argument.Count() > 100) throw new ArgumentException(nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfCountAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
+        _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0007");
+    }
+
+    [Test]
+    public async Task Analyze_WhenReceiverIsPlainIEnumerable_ReportsDiagnostic()
+    {
+        const string source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class C
+            {
+                void M(IEnumerable<int> argument)
+                {
+                    if (argument.Count() > 100) throw new ArgumentException(nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfCountAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
+        _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0007");
+    }
+
+    [Test]
+    public async Task Analyze_WhenReceiverIsString_ReportsDiagnostic()
+    {
+        const string source = """
+            using System;
+            using System.Linq;
+
+            class C
+            {
+                void M(string argument)
+                {
+                    if (argument.Count() > 100) throw new ArgumentException(nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfCountAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
+        _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0007");
+    }
+
+    [Test]
+    public async Task Analyze_WhenReceiverTypeIsUnresolved_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    if (undeclaredArgument.Count > 100) throw new ArgumentException(nameof(undeclaredArgument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfCountAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
 }
