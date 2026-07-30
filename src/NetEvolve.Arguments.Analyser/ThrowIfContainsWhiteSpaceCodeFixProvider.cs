@@ -71,7 +71,8 @@ public sealed class ThrowIfContainsWhiteSpaceCodeFixProvider : CodeFixProvider
             root is null
             || !ThrowIfContainsWhiteSpaceAnalyzer.TryGetContainsWhiteSpaceTarget(
                 ifStatement.Condition,
-                out var argument
+                out var argument,
+                out _
             )
             || argument is null
         )
