@@ -10,10 +10,12 @@
     <PackageReleaseNotes>$(PackageProjectUrl)/releases/</PackageReleaseNotes>
   </PropertyGroup>
   <ItemGroup>
-    <!-- OutputItemType="Analyzer" keeps this project linting itself with its own analyser during
-         local builds; ReferenceOutputAssembly="false" means it is a build-order dependency only and
-         is never a compile-time or NuGet dependency - its DLL is packed directly below instead. -->
-    <ProjectReference Include="..\NetEvolve.Arguments.Analyser\NetEvolve.Arguments.Analyser.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="All" />
+    <!-- This reference exists purely to guarantee build order, so the analyser DLL is present on
+         disk at the path the <None Pack="true"> item below points at. ReferenceOutputAssembly="false"
+         means it is never a compile-time or NuGet dependency. The analyzer is deliberately NOT applied
+         to this project itself (no OutputItemType="Analyzer") - self-analysis is intentionally disabled
+         here per the owner's decision. -->
+    <ProjectReference Include="..\NetEvolve.Arguments.Analyser\NetEvolve.Arguments.Analyser.csproj" ReferenceOutputAssembly="false" PrivateAssets="All" />
   </ItemGroup>
   <ItemGroup>
     <!-- Not TFM-specific: evaluated once by the outer (cross-targeting) build, so the analyser DLL
