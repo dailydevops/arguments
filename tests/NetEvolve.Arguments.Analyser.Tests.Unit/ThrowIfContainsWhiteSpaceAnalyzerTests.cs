@@ -69,4 +69,28 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzerTests
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
+
+    [Test]
+    [Arguments("char[]")]
+    [Arguments("System.Collections.Generic.List<char>")]
+    [Arguments("System.Collections.Generic.IEnumerable<char>")]
+    public async Task Analyze_WhenReceiverIsNotString_DoesNotReportDiagnostic(string parameterType)
+    {
+        var source = $$"""
+            using System;
+            using System.Linq;
+
+            class C
+            {
+                void M({{parameterType}} chars)
+                {
+                    if (chars.Any(char.IsWhiteSpace)) throw new ArgumentException(nameof(chars));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfContainsWhiteSpaceAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
 }

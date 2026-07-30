@@ -2,6 +2,7 @@ namespace NetEvolve.Arguments.Analyser;
 
 using System;
 using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -49,6 +50,22 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzer : DiagnosticAnalyzer
                 ArgumentExceptionMetadataName,
                 context.CancellationToken,
                 out _
+            )
+        )
+        {
+            return;
+        }
+
+        if (!IsStringReceiver(argument, context.SemanticModel, context.CancellationToken))
+        {
+            return;
+        }
+
+        if (
+            !IsLinqEnumerableAny(
+                (InvocationExpressionSyntax)SyntaxHelpers.Unwrap(ifStatement.Condition),
+                context.SemanticModel,
+                context.CancellationToken
             )
         )
         {
@@ -108,6 +125,36 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzer : DiagnosticAnalyzer
 
         return false;
     }
+
+    /// <summary>
+    /// Determines whether the receiver being validated is a <see cref="string"/>. The <c>Any</c> shape recognized by
+    /// <see cref="TryGetContainsWhiteSpaceTarget"/> matches purely syntactically and also fires on any
+    /// <c>IEnumerable&lt;char&gt;</c> receiver (e.g. <c>char[]</c> or <c>List&lt;char&gt;</c>), for which
+    /// <c>ArgumentException.ThrowIfContainsWhiteSpace(string?)</c> is not an applicable replacement.
+    /// </summary>
+    /// <param name="receiver">The expression being validated, as resolved by <see cref="TryGetContainsWhiteSpaceTarget"/>.</param>
+    /// <param name="semanticModel">The semantic model used to resolve the receiver's type.</param>
+    /// <param name="cancellationToken">The token used to cancel semantic-model lookups.</param>
+    /// <returns><see langword="true"/> if <paramref name="receiver"/> is of type <see cref="string"/>; otherwise, <see langword="false"/>.</returns>
+    private static bool IsStringReceiver(
+        ExpressionSyntax receiver,
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken
+    ) => semanticModel.GetTypeInfo(receiver, cancellationToken).Type?.SpecialType == SpecialType.System_String;
+
+    /// <summary>Determines whether an invocation resolves to <see cref="System.Linq.Enumerable.Any{TSource}(System.Collections.Generic.IEnumerable{TSource}, System.Func{TSource, bool})"/>, rather than some other method named <c>Any</c>.</summary>
+    /// <param name="invocation">The invocation expression to inspect.</param>
+    /// <param name="semanticModel">The semantic model used to resolve the invoked method.</param>
+    /// <param name="cancellationToken">The token used to cancel semantic-model lookups.</param>
+    /// <returns><see langword="true"/> if <paramref name="invocation"/> invokes <c>System.Linq.Enumerable.Any</c>; otherwise, <see langword="false"/>.</returns>
+    private static bool IsLinqEnumerableAny(
+        InvocationExpressionSyntax invocation,
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken
+    ) =>
+        semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol
+            is IMethodSymbol { Name: "Any", ContainingType: { } containingType }
+        && containingType.ToDisplayString() == "System.Linq.Enumerable";
 
     /// <summary>Determines whether an expression is a <c>char.IsWhiteSpace</c> member access, either via the <c>char</c> keyword or the <c>Char</c> identifier.</summary>
     /// <param name="expression">The expression to test.</param>
