@@ -2,6 +2,7 @@ namespace NetEvolve.Arguments.Analyser;
 
 using System;
 using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -13,6 +14,9 @@ public sealed class ThrowIfEmptyGuidAnalyzer : DiagnosticAnalyzer
 {
     /// <summary>The fully-qualified metadata name of <see cref="ArgumentException"/>.</summary>
     private const string ArgumentExceptionMetadataName = "System.ArgumentException";
+
+    /// <summary>The fully-qualified metadata name of <see cref="Guid"/>.</summary>
+    private const string GuidMetadataName = "System.Guid";
 
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
@@ -37,7 +41,22 @@ public sealed class ThrowIfEmptyGuidAnalyzer : DiagnosticAnalyzer
     {
         var ifStatement = (IfStatementSyntax)context.Node;
 
-        if (!TryGetEmptyGuidCheckedExpression(ifStatement.Condition, out var argument) || argument is null)
+        if (
+            !TryGetEmptyGuidCheckedExpression(
+                ifStatement.Condition,
+                context.SemanticModel,
+                context.CancellationToken,
+                out var argument
+            ) || argument is null
+        )
+        {
+            return;
+        }
+
+        var guidType = context.SemanticModel.Compilation.GetTypeByMetadataName(GuidMetadataName);
+        var argumentType = context.SemanticModel.GetTypeInfo(argument, context.CancellationToken).Type;
+
+        if (guidType is null || !SymbolEqualityComparer.Default.Equals(argumentType, guidType))
         {
             return;
         }
@@ -67,9 +86,16 @@ public sealed class ThrowIfEmptyGuidAnalyzer : DiagnosticAnalyzer
 
     /// <summary>Recognizes <c>arg.Equals(Guid.Empty)</c> and <c>arg == Guid.Empty</c>/<c>Guid.Empty == arg</c>.</summary>
     /// <param name="condition">The <c>if</c> statement's condition expression.</param>
+    /// <param name="semanticModel">The semantic model used to resolve <c>Guid.Empty</c>.</param>
+    /// <param name="cancellationToken">The token used to cancel semantic-model lookups.</param>
     /// <param name="argument">When this method returns <see langword="true"/>, the expression being checked; otherwise, <see langword="null"/>.</param>
     /// <returns><see langword="true"/> if <paramref name="condition"/> is a recognized <c>Guid.Empty</c>-check shape; otherwise, <see langword="false"/>.</returns>
-    internal static bool TryGetEmptyGuidCheckedExpression(ExpressionSyntax condition, out ExpressionSyntax? argument)
+    internal static bool TryGetEmptyGuidCheckedExpression(
+        ExpressionSyntax condition,
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken,
+        out ExpressionSyntax? argument
+    )
     {
         condition = SyntaxHelpers.Unwrap(condition);
         argument = null;
@@ -80,18 +106,19 @@ public sealed class ThrowIfEmptyGuidAnalyzer : DiagnosticAnalyzer
             {
                 Expression: MemberAccessExpressionSyntax { Name.Identifier.Text: "Equals" } access,
                 ArgumentList.Arguments.Count: 1,
-            } invocation when IsGuidEmpty(invocation.ArgumentList.Arguments[0].Expression):
+            } invocation
+                when IsGuidEmpty(invocation.ArgumentList.Arguments[0].Expression, semanticModel, cancellationToken):
                 argument = access.Expression;
                 return true;
 
             case BinaryExpressionSyntax binary when binary.IsKind(SyntaxKind.EqualsExpression):
-                if (IsGuidEmpty(binary.Right))
+                if (IsGuidEmpty(binary.Right, semanticModel, cancellationToken))
                 {
                     argument = binary.Left;
                     return true;
                 }
 
-                if (IsGuidEmpty(binary.Left))
+                if (IsGuidEmpty(binary.Left, semanticModel, cancellationToken))
                 {
                     argument = binary.Right;
                     return true;
@@ -103,14 +130,30 @@ public sealed class ThrowIfEmptyGuidAnalyzer : DiagnosticAnalyzer
         return false;
     }
 
-    /// <summary>Determines whether an expression is a <c>Guid.Empty</c> member access.</summary>
+    /// <summary>Determines whether an expression is a reference to the real <see cref="Guid.Empty"/> field.</summary>
     /// <param name="expression">The expression to test.</param>
-    /// <returns><see langword="true"/> if <paramref name="expression"/> is <c>Guid.Empty</c>; otherwise, <see langword="false"/>.</returns>
-    private static bool IsGuidEmpty(ExpressionSyntax expression) =>
-        SyntaxHelpers.Unwrap(expression)
-            is MemberAccessExpressionSyntax
-            {
-                Expression: IdentifierNameSyntax { Identifier.Text: "Guid" },
-                Name.Identifier.Text: "Empty",
-            };
+    /// <param name="semanticModel">The semantic model used to resolve the expression's symbol.</param>
+    /// <param name="cancellationToken">The token used to cancel semantic-model lookups.</param>
+    /// <returns><see langword="true"/> if <paramref name="expression"/> resolves to <see cref="Guid.Empty"/>; otherwise, <see langword="false"/>.</returns>
+    private static bool IsGuidEmpty(
+        ExpressionSyntax expression,
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken
+    )
+    {
+        if (
+            SyntaxHelpers.Unwrap(expression)
+            is not MemberAccessExpressionSyntax { Name.Identifier.Text: "Empty" } memberAccess
+        )
+        {
+            return false;
+        }
+
+        var symbol = semanticModel.GetSymbolInfo(memberAccess, cancellationToken).Symbol;
+        var guidType = semanticModel.Compilation.GetTypeByMetadataName(GuidMetadataName);
+
+        return guidType is not null
+            && symbol is IFieldSymbol { Name: "Empty" } field
+            && SymbolEqualityComparer.Default.Equals(field.ContainingType, guidType);
+    }
 }
