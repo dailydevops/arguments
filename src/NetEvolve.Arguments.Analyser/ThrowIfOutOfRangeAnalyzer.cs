@@ -174,12 +174,39 @@ public sealed class ThrowIfOutOfRangeAnalyzer : DiagnosticAnalyzer
         var lessThanValue = SyntaxHelpers.Unwrap(lessThan.Left);
         var greaterThanValue = SyntaxHelpers.Unwrap(greaterThan.Left);
 
-        if (lessThanValue is LiteralExpressionSyntax || !SyntaxHelpers.AreEquivalent(lessThanValue, greaterThanValue))
+        if (!IsSideEffectFreeOperand(lessThanValue) || !SyntaxHelpers.AreEquivalent(lessThanValue, greaterThanValue))
         {
             return false;
         }
 
         comparison = new ComparisonResult("ThrowIfOutOfRange", lessThanValue, lessThan.Right, greaterThan.Right);
         return true;
+    }
+
+    /// <summary>
+    /// Determines whether an expression is safe to fold from two source occurrences (once on each side of the
+    /// combined-range condition) into a single occurrence in the generated throw-helper call. The combined-range
+    /// shape is the only one where the operand is textually duplicated in the source but emitted only once in the
+    /// fix, so unlike the simple comparison shapes, evaluating it twice versus once can silently change behavior if
+    /// the expression has a side effect (e.g. it advances an iterator or increments a counter).
+    /// </summary>
+    /// <remarks>
+    /// This is a conservative, purely syntactic allow-list: a bare identifier (a parameter or local), or a chain of
+    /// member accesses rooted in one. Invocations, indexers, object creation, <c>await</c>, and assignment or
+    /// increment/decrement expressions are all rejected. Note that a member access is not strictly guaranteed to be
+    /// side-effect-free either, since a property getter can run arbitrary code; however, rejecting all member access
+    /// would gut the rule's main use case (e.g. <c>arg.Length</c>), so accepting member-access chains while
+    /// rejecting invocations is the pragmatic line drawn here.
+    /// </remarks>
+    /// <param name="expression">The already-unwrapped operand expression to test.</param>
+    /// <returns><see langword="true"/> if <paramref name="expression"/> is an identifier or a member-access chain rooted in one; otherwise, <see langword="false"/>.</returns>
+    private static bool IsSideEffectFreeOperand(ExpressionSyntax expression)
+    {
+        while (expression is MemberAccessExpressionSyntax memberAccess)
+        {
+            expression = SyntaxHelpers.Unwrap(memberAccess.Expression);
+        }
+
+        return expression is IdentifierNameSyntax;
     }
 }

@@ -211,6 +211,79 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
     }
 
     [Test]
+    public async Task Analyze_WhenCombinedRangeOperandIsInvocation_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                int Next() => 0;
+
+                void M()
+                {
+                    if (Next() < 5 || Next() > 100) throw new ArgumentOutOfRangeException("x");
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
+    public async Task Analyze_WhenCombinedRangeOperandIsElementAccess_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(int[] items)
+                {
+                    if (items[0] < 5 || items[0] > 100) throw new ArgumentOutOfRangeException("x");
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
+    public async Task Analyze_WhenCombinedRangeOperandIsMemberAccess_ReportsDiagnosticAndFixes()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(string argument)
+                {
+                    if (argument.Length < 5 || argument.Length > 100) throw new ArgumentOutOfRangeException(nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
+        _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0003");
+
+        var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
+            new ThrowIfOutOfRangeAnalyzer(),
+            new ThrowIfOutOfRangeCodeFixProvider(),
+            source
+        );
+
+        _ = await Assert
+            .That(fixedSource)
+            .Contains("ArgumentOutOfRangeException.ThrowIfOutOfRange(argument.Length, 5, 100);");
+    }
+
+    [Test]
     [Arguments("bool argument", "argument")]
     [Arguments("int argument, int other", "argument < 5 || other > 100")]
     [Arguments("int argument", "argument > 100 || argument < 5")]
