@@ -5,6 +5,17 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzerTests
     [Test]
     [Arguments("argument.Any(c => char.IsWhiteSpace(c))")]
     [Arguments("argument.Any(char.IsWhiteSpace)")]
+    [Arguments("argument.Count(c => char.IsWhiteSpace(c)) > 0")]
+    [Arguments("argument.Count(char.IsWhiteSpace) > 0")]
+    [Arguments("argument.Count(c => char.IsWhiteSpace(c)) >= 1")]
+    [Arguments("argument.Count(char.IsWhiteSpace) >= 1")]
+    [Arguments("argument.Count(c => char.IsWhiteSpace(c)) != 0")]
+    [Arguments("argument.Count(char.IsWhiteSpace) != 0")]
+    [Arguments("0 < argument.Count(char.IsWhiteSpace)")]
+    [Arguments("1 <= argument.Count(char.IsWhiteSpace)")]
+    [Arguments("0 != argument.Count(char.IsWhiteSpace)")]
+    [Arguments("argument.Where(c => char.IsWhiteSpace(c)).Any()")]
+    [Arguments("argument.Where(char.IsWhiteSpace).Any()")]
     public async Task Analyze_WhenWhiteSpaceCheckThrowsArgumentException_ReportsDiagnosticAndFixes(string condition)
     {
         var source = $$"""
@@ -77,6 +88,22 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzerTests
     [Arguments(
         "if (argument.Any(char.IsWhiteSpace)) throw new ArgumentException(\"has whitespace\", nameof(argument));"
     )]
+    [Arguments("if (argument.Count(char.IsWhiteSpace) > 0) throw new ArgumentException(nameof(other));")]
+    [Arguments(
+        "if (argument.Count(char.IsWhiteSpace) > 0) throw new ArgumentException(\"has whitespace\", nameof(argument));"
+    )]
+    [Arguments("if (argument.Where(char.IsWhiteSpace).Any()) throw new ArgumentException(nameof(other));")]
+    [Arguments(
+        "if (argument.Where(char.IsWhiteSpace).Any()) throw new ArgumentException(\"has whitespace\", nameof(argument));"
+    )]
+    [Arguments("if (argument.Count(char.IsWhiteSpace) > 1) throw new ArgumentException(nameof(argument));")]
+    [Arguments("if (argument.Count(char.IsWhiteSpace) == 0) throw new ArgumentException(nameof(argument));")]
+    [Arguments("if (argument.Count(char.IsWhiteSpace) < 1) throw new ArgumentException(nameof(argument));")]
+    [Arguments("if (1 < argument.Count(char.IsWhiteSpace)) throw new ArgumentException(nameof(argument));")]
+    [Arguments("if (argument.All(char.IsWhiteSpace)) throw new ArgumentException(nameof(argument));")]
+    [Arguments("if (argument.Count(c => c == ' ') > 0) throw new ArgumentException(nameof(argument));")]
+    [Arguments("if (argument.Select(c => c).Any()) throw new ArgumentException(nameof(argument));")]
+    [Arguments("if (argument.Where(c => c == ' ').Any()) throw new ArgumentException(nameof(argument));")]
     [Arguments(
         """
             if (argument.Any(char.IsWhiteSpace))
@@ -133,6 +160,34 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzerTests
     }
 
     [Test]
+    [Arguments("char[]", "chars.Count(char.IsWhiteSpace) > 0")]
+    [Arguments("System.Collections.Generic.List<char>", "chars.Count(char.IsWhiteSpace) > 0")]
+    [Arguments("char[]", "chars.Where(char.IsWhiteSpace).Any()")]
+    [Arguments("System.Collections.Generic.List<char>", "chars.Where(char.IsWhiteSpace).Any()")]
+    public async Task Analyze_WhenReceiverIsNotString_NewShapes_DoesNotReportDiagnostic(
+        string parameterType,
+        string condition
+    )
+    {
+        var source = $$"""
+            using System;
+            using System.Linq;
+
+            class C
+            {
+                void M({{parameterType}} chars)
+                {
+                    if ({{condition}}) throw new ArgumentException(nameof(chars));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfContainsWhiteSpaceAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
     public async Task Analyze_WhenReceiverHasNoResolvableType_DoesNotReportDiagnostic()
     {
         // "Predicate" refers to the method group C.Predicate(char), which has no type of its own
@@ -160,11 +215,68 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzerTests
     }
 
     [Test]
+    [Arguments("argument.Count(char.IsWhiteSpace) > 0")]
+    [Arguments("argument.Where(char.IsWhiteSpace).Any()")]
+    public async Task Analyze_WhenCountOrWhereIsUserDefinedExtension_DoesNotReportDiagnostic(string condition)
+    {
+        var source = $$"""
+            using System;
+
+            static class MyExtensions
+            {
+                public static int Count(this string s, Func<char, bool> predicate) => 0;
+
+                public static string[] Where(this string s, Func<char, bool> predicate) => Array.Empty<string>();
+
+                public static bool Any(this string[] s) => false;
+            }
+
+            class C
+            {
+                void M(string argument)
+                {
+                    if ({{condition}}) throw new ArgumentException(nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfContainsWhiteSpaceAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
+    public async Task Analyze_WhenAnyIsUserDefinedExtensionOnWhereResult_DoesNotReportDiagnostic()
+    {
+        var source = """
+            using System;
+            using System.Linq;
+
+            static class MyExtensions
+            {
+                public static bool Any(this System.Collections.Generic.IEnumerable<char> s) => false;
+            }
+
+            class C
+            {
+                void M(string argument)
+                {
+                    if (argument.Where(char.IsWhiteSpace).Any()) throw new ArgumentException(nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfContainsWhiteSpaceAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
     public async Task Analyze_WhenAnyResolutionIsAmbiguous_DoesNotReportDiagnostic()
     {
         // Two equally applicable extension methods named "Any" make the call ambiguous, so
         // SemanticModel.GetSymbolInfo(...).Symbol is null (CandidateReason.OverloadResolutionFailure).
-        // This exercises the "Symbol is IMethodSymbol" pattern failing in IsLinqEnumerableAny, as
+        // This exercises the "Symbol is IMethodSymbol" pattern failing in IsLinqEnumerableMethod, as
         // opposed to Analyze_WhenAnyIsNotLinqEnumerableAny_DoesNotReportDiagnostic, where the symbol
         // resolves unambiguously to a method whose containing type merely isn't Enumerable.
         var source = """

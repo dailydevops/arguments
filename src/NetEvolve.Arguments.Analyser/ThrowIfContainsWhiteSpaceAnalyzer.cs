@@ -38,7 +38,10 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzer : DiagnosticAnalyzer
     {
         var ifStatement = (IfStatementSyntax)context.Node;
 
-        if (!TryGetContainsWhiteSpaceTarget(ifStatement.Condition, out var argument) || argument is null)
+        if (
+            !TryGetContainsWhiteSpaceTarget(ifStatement.Condition, out var argument, out var invocationsToVerify)
+            || argument is null
+        )
         {
             return;
         }
@@ -71,15 +74,19 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        if (
-            !IsLinqEnumerableAny(
-                (InvocationExpressionSyntax)SyntaxHelpers.Unwrap(ifStatement.Condition),
-                context.SemanticModel,
-                context.CancellationToken
-            )
-        )
+        foreach (var (invocation, expectedMethodName) in invocationsToVerify)
         {
-            return;
+            if (
+                !IsLinqEnumerableMethod(
+                    invocation,
+                    expectedMethodName,
+                    context.SemanticModel,
+                    context.CancellationToken
+                )
+            )
+            {
+                return;
+            }
         }
 
         context.ReportDiagnostic(
@@ -91,14 +98,66 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzer : DiagnosticAnalyzer
         );
     }
 
-    /// <summary>Recognizes <c>arg.Any(c => char.IsWhiteSpace(c))</c> and the method-group form <c>arg.Any(char.IsWhiteSpace)</c>.</summary>
+    /// <summary>
+    /// Recognizes the white-space-check shapes supported by this rule:
+    /// <list type="bullet">
+    /// <item><description><c>arg.Any(c => char.IsWhiteSpace(c))</c> and the method-group form <c>arg.Any(char.IsWhiteSpace)</c>.</description></item>
+    /// <item><description><c>arg.Count(char.IsWhiteSpace) &gt; 0</c>, <c>&gt;= 1</c> and <c>!= 0</c> (and the operand-swapped forms, e.g. <c>0 &lt; arg.Count(char.IsWhiteSpace)</c>).</description></item>
+    /// <item><description><c>arg.Where(char.IsWhiteSpace).Any()</c>.</description></item>
+    /// </list>
+    /// </summary>
     /// <param name="condition">The <c>if</c> statement's condition expression.</param>
     /// <param name="argument">When this method returns <see langword="true"/>, the string argument being checked; otherwise, <see langword="null"/>.</param>
+    /// <param name="invocationsToVerify">
+    /// When this method returns <see langword="true"/>, the invocation(s) that must still be confirmed (via the
+    /// semantic model) to resolve to the corresponding <see cref="System.Linq.Enumerable"/> method, paired with the
+    /// expected method name; otherwise, empty.
+    /// </param>
     /// <returns><see langword="true"/> if <paramref name="condition"/> is a recognized white-space-check shape; otherwise, <see langword="false"/>.</returns>
-    internal static bool TryGetContainsWhiteSpaceTarget(ExpressionSyntax condition, out ExpressionSyntax? argument)
+    internal static bool TryGetContainsWhiteSpaceTarget(
+        ExpressionSyntax condition,
+        out ExpressionSyntax? argument,
+        out ImmutableArray<(InvocationExpressionSyntax Invocation, string ExpectedMethodName)> invocationsToVerify
+    )
     {
         argument = null;
+        invocationsToVerify = ImmutableArray<(InvocationExpressionSyntax, string)>.Empty;
         condition = SyntaxHelpers.Unwrap(condition);
+
+        if (TryGetAnyShape(condition, out argument, out var anyInvocation))
+        {
+            invocationsToVerify = ImmutableArray.Create((anyInvocation!, "Any"));
+            return true;
+        }
+
+        if (TryGetCountShape(condition, out argument, out var countInvocation))
+        {
+            invocationsToVerify = ImmutableArray.Create((countInvocation!, "Count"));
+            return true;
+        }
+
+        if (TryGetWhereAnyShape(condition, out argument, out var whereInvocation, out var whereAnyInvocation))
+        {
+            invocationsToVerify = ImmutableArray.Create((whereInvocation!, "Where"), (whereAnyInvocation!, "Any"));
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>Recognizes <c>arg.Any(c => char.IsWhiteSpace(c))</c> and the method-group form <c>arg.Any(char.IsWhiteSpace)</c>.</summary>
+    /// <param name="condition">The already-unwrapped condition expression.</param>
+    /// <param name="argument">When this method returns <see langword="true"/>, the string argument being checked; otherwise, <see langword="null"/>.</param>
+    /// <param name="invocation">When this method returns <see langword="true"/>, the matched <c>Any</c> invocation; otherwise, <see langword="null"/>.</param>
+    /// <returns><see langword="true"/> if <paramref name="condition"/> is the recognized <c>Any</c> shape; otherwise, <see langword="false"/>.</returns>
+    private static bool TryGetAnyShape(
+        ExpressionSyntax condition,
+        out ExpressionSyntax? argument,
+        out InvocationExpressionSyntax? invocation
+    )
+    {
+        argument = null;
+        invocation = null;
 
         if (
             condition
@@ -106,34 +165,183 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzer : DiagnosticAnalyzer
             {
                 Expression: MemberAccessExpressionSyntax { Name.Identifier.Text: "Any" } access,
                 ArgumentList.Arguments.Count: 1,
-            } invocation
+            } anyInvocation
         )
         {
             return false;
         }
 
-        var predicate = SyntaxHelpers.Unwrap(invocation.ArgumentList.Arguments[0].Expression);
-
-        if (IsCharIsWhiteSpaceMemberAccess(predicate))
+        if (!IsWhiteSpacePredicate(anyInvocation.ArgumentList.Arguments[0].Expression))
         {
-            argument = access.Expression;
+            return false;
+        }
+
+        argument = access.Expression;
+        invocation = anyInvocation;
+        return true;
+    }
+
+    /// <summary>
+    /// Recognizes <c>arg.Count(char.IsWhiteSpace) &gt; 0</c>, <c>&gt;= 1</c> and <c>!= 0</c>, and the operand-swapped
+    /// forms (e.g. <c>0 &lt; arg.Count(char.IsWhiteSpace)</c>), all of which mean "at least one character matches".
+    /// </summary>
+    /// <param name="condition">The already-unwrapped condition expression.</param>
+    /// <param name="argument">When this method returns <see langword="true"/>, the string argument being checked; otherwise, <see langword="null"/>.</param>
+    /// <param name="invocation">When this method returns <see langword="true"/>, the matched <c>Count</c> invocation; otherwise, <see langword="null"/>.</param>
+    /// <returns><see langword="true"/> if <paramref name="condition"/> is the recognized <c>Count</c> comparison shape; otherwise, <see langword="false"/>.</returns>
+    private static bool TryGetCountShape(
+        ExpressionSyntax condition,
+        out ExpressionSyntax? argument,
+        out InvocationExpressionSyntax? invocation
+    )
+    {
+        argument = null;
+        invocation = null;
+
+        if (condition is not BinaryExpressionSyntax binary)
+        {
+            return false;
+        }
+
+        var left = SyntaxHelpers.Unwrap(binary.Left);
+        var right = SyntaxHelpers.Unwrap(binary.Right);
+        var kind = binary.Kind();
+
+        if (TryGetCountInvocation(left, out var countInvocation) && MeansCountGreaterThanZero(kind, right))
+        {
+            invocation = countInvocation;
+        }
+        else if (TryGetCountInvocation(right, out countInvocation) && MeansZeroLessThanCount(kind, left))
+        {
+            invocation = countInvocation;
+        }
+        else
+        {
+            return false;
+        }
+
+        if (!IsWhiteSpacePredicate(invocation!.ArgumentList.Arguments[0].Expression))
+        {
+            invocation = null;
+            return false;
+        }
+
+        argument = ((MemberAccessExpressionSyntax)invocation.Expression).Expression;
+        return true;
+    }
+
+    /// <summary>Recognizes a single-argument <c>.Count(predicate)</c> LINQ extension method invocation.</summary>
+    /// <param name="expression">The already-unwrapped expression to test.</param>
+    /// <param name="invocation">When this method returns <see langword="true"/>, the matched invocation; otherwise, <see langword="null"/>.</param>
+    /// <returns><see langword="true"/> if <paramref name="expression"/> is a recognized <c>Count(predicate)</c> shape; otherwise, <see langword="false"/>.</returns>
+    private static bool TryGetCountInvocation(ExpressionSyntax expression, out InvocationExpressionSyntax? invocation)
+    {
+        if (
+            expression is InvocationExpressionSyntax
+            {
+                Expression: MemberAccessExpressionSyntax { Name.Identifier.Text: "Count" },
+                ArgumentList.Arguments.Count: 1,
+            } countInvocation
+        )
+        {
+            invocation = countInvocation;
             return true;
         }
 
+        invocation = null;
+        return false;
+    }
+
+    /// <summary>Determines whether <c>Count(...) kind rhs</c> means "at least one", i.e. <c>&gt; 0</c>, <c>&gt;= 1</c> or <c>!= 0</c>.</summary>
+    private static bool MeansCountGreaterThanZero(SyntaxKind kind, ExpressionSyntax rhs) =>
+        (kind == SyntaxKind.GreaterThanExpression && IsIntegerLiteral(rhs, 0))
+        || (kind == SyntaxKind.GreaterThanOrEqualExpression && IsIntegerLiteral(rhs, 1))
+        || (kind == SyntaxKind.NotEqualsExpression && IsIntegerLiteral(rhs, 0));
+
+    /// <summary>Determines whether <c>lhs kind Count(...)</c> means "at least one", i.e. <c>0 &lt; ...</c>, <c>1 &lt;= ...</c> or <c>0 != ...</c>.</summary>
+    private static bool MeansZeroLessThanCount(SyntaxKind kind, ExpressionSyntax lhs) =>
+        (kind == SyntaxKind.LessThanExpression && IsIntegerLiteral(lhs, 0))
+        || (kind == SyntaxKind.LessThanOrEqualExpression && IsIntegerLiteral(lhs, 1))
+        || (kind == SyntaxKind.NotEqualsExpression && IsIntegerLiteral(lhs, 0));
+
+    /// <summary>Determines whether an expression is an integer literal equal to <paramref name="value"/>.</summary>
+    /// <param name="expression">The already-unwrapped expression to test.</param>
+    /// <param name="value">The expected integer value.</param>
+    /// <returns><see langword="true"/> if <paramref name="expression"/> is an integer literal equal to <paramref name="value"/>; otherwise, <see langword="false"/>.</returns>
+    private static bool IsIntegerLiteral(ExpressionSyntax expression, int value) =>
+        SyntaxHelpers.Unwrap(expression) is LiteralExpressionSyntax { Token.Value: int literalValue }
+        && literalValue == value;
+
+    /// <summary>Recognizes <c>arg.Where(char.IsWhiteSpace).Any()</c>, with a parameterless <c>Any()</c> call.</summary>
+    /// <param name="condition">The already-unwrapped condition expression.</param>
+    /// <param name="argument">When this method returns <see langword="true"/>, the string argument being checked; otherwise, <see langword="null"/>.</param>
+    /// <param name="whereInvocation">When this method returns <see langword="true"/>, the matched <c>Where</c> invocation; otherwise, <see langword="null"/>.</param>
+    /// <param name="anyInvocation">When this method returns <see langword="true"/>, the matched <c>Any</c> invocation; otherwise, <see langword="null"/>.</param>
+    /// <returns><see langword="true"/> if <paramref name="condition"/> is the recognized <c>Where(...).Any()</c> shape; otherwise, <see langword="false"/>.</returns>
+    private static bool TryGetWhereAnyShape(
+        ExpressionSyntax condition,
+        out ExpressionSyntax? argument,
+        out InvocationExpressionSyntax? whereInvocation,
+        out InvocationExpressionSyntax? anyInvocation
+    )
+    {
+        argument = null;
+        whereInvocation = null;
+        anyInvocation = null;
+
         if (
-            predicate is SimpleLambdaExpressionSyntax { ExpressionBody: { } body } lambda
+            condition
+            is not InvocationExpressionSyntax
+            {
+                Expression: MemberAccessExpressionSyntax { Name.Identifier.Text: "Any" } anyAccess,
+                ArgumentList.Arguments.Count: 0,
+            } anyInvocationCandidate
+        )
+        {
+            return false;
+        }
+
+        if (
+            SyntaxHelpers.Unwrap(anyAccess.Expression)
+            is not InvocationExpressionSyntax
+            {
+                Expression: MemberAccessExpressionSyntax { Name.Identifier.Text: "Where" } whereAccess,
+                ArgumentList.Arguments.Count: 1,
+            } whereInvocationCandidate
+        )
+        {
+            return false;
+        }
+
+        if (!IsWhiteSpacePredicate(whereInvocationCandidate.ArgumentList.Arguments[0].Expression))
+        {
+            return false;
+        }
+
+        argument = whereAccess.Expression;
+        whereInvocation = whereInvocationCandidate;
+        anyInvocation = anyInvocationCandidate;
+        return true;
+    }
+
+    /// <summary>Determines whether a predicate argument is <c>char.IsWhiteSpace</c> as a method group, or the equivalent lambda <c>c =&gt; char.IsWhiteSpace(c)</c>.</summary>
+    /// <param name="predicateArgument">The argument expression passed as the predicate.</param>
+    /// <returns><see langword="true"/> if <paramref name="predicateArgument"/> is a recognized white-space predicate; otherwise, <see langword="false"/>.</returns>
+    private static bool IsWhiteSpacePredicate(ExpressionSyntax predicateArgument)
+    {
+        var predicate = SyntaxHelpers.Unwrap(predicateArgument);
+
+        if (IsCharIsWhiteSpaceMemberAccess(predicate))
+        {
+            return true;
+        }
+
+        return predicate is SimpleLambdaExpressionSyntax { ExpressionBody: { } body } lambda
             && SyntaxHelpers.Unwrap(body)
                 is InvocationExpressionSyntax { Expression: var callee, ArgumentList.Arguments.Count: 1 } call
             && IsCharIsWhiteSpaceMemberAccess(callee)
             && SyntaxHelpers.Unwrap(call.ArgumentList.Arguments[0].Expression) is IdentifierNameSyntax paramRef
-            && paramRef.Identifier.Text == lambda.Parameter.Identifier.Text
-        )
-        {
-            argument = access.Expression;
-            return true;
-        }
-
-        return false;
+            && paramRef.Identifier.Text == lambda.Parameter.Identifier.Text;
     }
 
     /// <summary>
@@ -152,18 +360,21 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzer : DiagnosticAnalyzer
         CancellationToken cancellationToken
     ) => semanticModel.GetTypeInfo(receiver, cancellationToken).Type?.SpecialType == SpecialType.System_String;
 
-    /// <summary>Determines whether an invocation resolves to <see cref="System.Linq.Enumerable.Any{TSource}(System.Collections.Generic.IEnumerable{TSource}, System.Func{TSource, bool})"/>, rather than some other method named <c>Any</c>.</summary>
+    /// <summary>Determines whether an invocation resolves to the named method on <see cref="System.Linq.Enumerable"/> (e.g. <c>Any</c>, <c>Count</c> or <c>Where</c>), rather than some other method or extension of the same name.</summary>
     /// <param name="invocation">The invocation expression to inspect.</param>
+    /// <param name="expectedMethodName">The expected method name, e.g. <c>"Any"</c>, <c>"Count"</c> or <c>"Where"</c>.</param>
     /// <param name="semanticModel">The semantic model used to resolve the invoked method.</param>
     /// <param name="cancellationToken">The token used to cancel semantic-model lookups.</param>
-    /// <returns><see langword="true"/> if <paramref name="invocation"/> invokes <c>System.Linq.Enumerable.Any</c>; otherwise, <see langword="false"/>.</returns>
-    private static bool IsLinqEnumerableAny(
+    /// <returns><see langword="true"/> if <paramref name="invocation"/> invokes <c>System.Linq.Enumerable.{expectedMethodName}</c>; otherwise, <see langword="false"/>.</returns>
+    private static bool IsLinqEnumerableMethod(
         InvocationExpressionSyntax invocation,
+        string expectedMethodName,
         SemanticModel semanticModel,
         CancellationToken cancellationToken
     ) =>
         semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol
-            is IMethodSymbol { Name: "Any", ContainingType: { } containingType }
+            is IMethodSymbol { ContainingType: { } containingType } method
+        && method.Name == expectedMethodName
         && containingType.ToDisplayString() == "System.Linq.Enumerable";
 
     /// <summary>Determines whether an expression is a <c>char.IsWhiteSpace</c> member access, either via the <c>char</c> keyword or the <c>Char</c> identifier.</summary>
