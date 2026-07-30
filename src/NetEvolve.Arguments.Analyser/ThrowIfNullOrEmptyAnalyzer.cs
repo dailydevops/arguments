@@ -31,27 +31,61 @@ public sealed class ThrowIfNullOrEmptyAnalyzer : DiagnosticAnalyzer
         context.RegisterCompilationStartAction(OnCompilationStart);
     }
 
-    /// <summary>Registers the syntax-node action for this rule, unless the compilation's BCL already exposes <c>ArgumentException.ThrowIfNullOrEmpty</c>.</summary>
+    /// <summary>
+    /// Probes the compilation's BCL for both <c>ArgumentException.ThrowIfNullOrEmpty</c> and <c>ArgumentException.ThrowIfNullOrWhiteSpace</c>,
+    /// and registers the syntax-node action unless both are already present.
+    /// </summary>
     /// <param name="context">The compilation-start context supplied by the Roslyn analyzer driver.</param>
     private static void OnCompilationStart(CompilationStartAnalysisContext context)
     {
-        // The BCL exposes these throw-helpers since .NET 8; where it does, the built-in
-        // CA1511 analyzer already covers this pattern, so stay silent to avoid duplicates.
-        if (SyntaxHelpers.HasBuiltInMember(context.Compilation, ArgumentExceptionMetadataName, "ThrowIfNullOrEmpty"))
+        // The BCL exposes ThrowIfNullOrEmpty since .NET 7 and ThrowIfNullOrWhiteSpace since .NET 8; where a
+        // given helper already exists, the built-in CA1511 analyzer already covers that shape, so this rule
+        // must stay silent for it to avoid duplicates. The two helpers can be independently available (e.g.
+        // net7.0's System.Runtime declares only ThrowIfNullOrEmpty), so each is probed separately and the
+        // per-branch suppression happens in Analyze; only skip registration entirely when both already exist.
+        var hasThrowIfNullOrEmpty = SyntaxHelpers.HasBuiltInMember(
+            context.Compilation,
+            ArgumentExceptionMetadataName,
+            "ThrowIfNullOrEmpty"
+        );
+        var hasThrowIfNullOrWhiteSpace = SyntaxHelpers.HasBuiltInMember(
+            context.Compilation,
+            ArgumentExceptionMetadataName,
+            "ThrowIfNullOrWhiteSpace"
+        );
+
+        if (hasThrowIfNullOrEmpty && hasThrowIfNullOrWhiteSpace)
         {
             return;
         }
 
-        context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.IfStatement);
+        context.RegisterSyntaxNodeAction(
+            nodeContext => Analyze(nodeContext, hasThrowIfNullOrEmpty, hasThrowIfNullOrWhiteSpace),
+            SyntaxKind.IfStatement
+        );
     }
 
     /// <summary>Analyzes an <c>if</c> statement and reports NEA0002 when it is a <c>string.IsNullOrEmpty</c>/<c>IsNullOrWhiteSpace</c>-then-throw of <see cref="ArgumentException"/>.</summary>
     /// <param name="context">The syntax-node analysis context for the <c>if</c> statement being visited.</param>
-    private static void Analyze(SyntaxNodeAnalysisContext context)
+    /// <param name="hasThrowIfNullOrEmpty">Whether the compilation's BCL already exposes <c>ArgumentException.ThrowIfNullOrEmpty</c>.</param>
+    /// <param name="hasThrowIfNullOrWhiteSpace">Whether the compilation's BCL already exposes <c>ArgumentException.ThrowIfNullOrWhiteSpace</c>.</param>
+    private static void Analyze(
+        SyntaxNodeAnalysisContext context,
+        bool hasThrowIfNullOrEmpty,
+        bool hasThrowIfNullOrWhiteSpace
+    )
     {
         var ifStatement = (IfStatementSyntax)context.Node;
 
         if (!TryGetStringCheck(ifStatement.Condition, out var argument, out var helperName) || argument is null)
+        {
+            return;
+        }
+
+        if (
+            (helperName is "ThrowIfNullOrEmpty" && hasThrowIfNullOrEmpty)
+            || (helperName is "ThrowIfNullOrWhiteSpace" && hasThrowIfNullOrWhiteSpace)
+        )
         {
             return;
         }
