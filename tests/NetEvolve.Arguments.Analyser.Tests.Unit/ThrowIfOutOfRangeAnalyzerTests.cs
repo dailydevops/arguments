@@ -305,4 +305,24 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
+
+    [Test]
+    public async Task Analyze_WhenOperandTypeIsUnresolvedErrorType_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(Undeclared argument)
+                {
+                    if (argument < 0) throw new ArgumentOutOfRangeException(nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
 }
