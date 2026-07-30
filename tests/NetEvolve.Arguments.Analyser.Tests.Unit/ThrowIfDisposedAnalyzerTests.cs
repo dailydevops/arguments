@@ -48,6 +48,88 @@ public sealed class ThrowIfDisposedAnalyzerTests
     }
 
     [Test]
+    public async Task Analyze_WhenInLocalFunctionInsideStaticMethod_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                private static bool _disposed;
+
+                static void M()
+                {
+                    void Check()
+                    {
+                        if (_disposed) throw new ObjectDisposedException(nameof(C));
+                    }
+
+                    Check();
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfDisposedAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
+    public async Task Analyze_WhenInLambdaInsideStaticMethod_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                private static bool _disposed;
+
+                static void M()
+                {
+                    Action check = () =>
+                    {
+                        if (_disposed) throw new ObjectDisposedException(nameof(C));
+                    };
+
+                    check();
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfDisposedAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
+    public async Task Analyze_WhenInLocalFunctionInsideInstanceMethod_ReportsDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                private bool _disposed;
+
+                void M()
+                {
+                    void Check()
+                    {
+                        if (_disposed) throw new ObjectDisposedException(nameof(C));
+                    }
+
+                    Check();
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfDisposedAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
+        _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0005");
+    }
+
+    [Test]
     [Arguments("if (_disposed) throw new ArgumentException(\"disposed\");")]
     [Arguments(
         """
