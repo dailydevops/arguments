@@ -1,5 +1,7 @@
 namespace NetEvolve.Arguments.Analyser.Tests.Unit;
 
+using System;
+
 public sealed class ThrowIfDefaultAnalyzerTests
 {
     [Test]
@@ -105,4 +107,51 @@ public sealed class ThrowIfDefaultAnalyzerTests
 
         _ = await Assert.That(fixedSource).Contains("ArgumentException.ThrowIfDefault(argument);");
     }
+
+    [Test]
+    public async Task CodeFix_WhenBlockContainsInteriorComment_PreservesCommentExactlyOnce()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(Guid argument)
+                {
+                    // guard below
+                    if (argument.Equals(default))
+                    {
+                        // see bug #431
+                        throw new ArgumentException(nameof(argument));
+                    }
+                }
+            }
+            """;
+
+        var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
+            new ThrowIfDefaultAnalyzer(),
+            new ThrowIfDefaultCodeFixProvider(),
+            source
+        );
+
+        _ = await Assert.That(fixedSource).Contains("ArgumentException.ThrowIfDefault(argument);");
+
+        // The comment that already precedes the `if` statement (carried over by WithTriviaFrom) must not be
+        // duplicated, and the interior comment (attached to the `throw` inside the block, which WithTriviaFrom
+        // alone would drop) must be preserved exactly once, immediately before the replacement statement.
+        var guardOccurrences = CountOccurrences(fixedSource, "// guard below");
+        var interiorOccurrences = CountOccurrences(fixedSource, "// see bug #431");
+
+        _ = await Assert.That(guardOccurrences).IsEqualTo(1);
+        _ = await Assert.That(interiorOccurrences).IsEqualTo(1);
+        _ = await Assert
+            .That(fixedSource.IndexOf("// guard below", StringComparison.Ordinal))
+            .IsLessThan(fixedSource.IndexOf("// see bug #431", StringComparison.Ordinal));
+        _ = await Assert
+            .That(fixedSource)
+            .Contains($"// see bug #431{Environment.NewLine}        ArgumentException.ThrowIfDefault");
+    }
+
+    private static int CountOccurrences(string text, string value) =>
+        text.Split([value], StringSplitOptions.None).Length - 1;
 }

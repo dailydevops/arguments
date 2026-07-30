@@ -90,7 +90,7 @@ public sealed class ThrowIfNullCodeFixProvider : CodeFixProvider
 
         var throwIfNullInvocation = SyntaxFactory
             .ExpressionStatement(CreateThrowIfNullInvocation(argument))
-            .WithTriviaFrom(ifStatement)
+            .WithTriviaFromPreservingComments(ifStatement)
             .WithAdditionalAnnotations(Formatter.Annotation);
 
         var newRoot = root.ReplaceNode(ifStatement, throwIfNullInvocation);
