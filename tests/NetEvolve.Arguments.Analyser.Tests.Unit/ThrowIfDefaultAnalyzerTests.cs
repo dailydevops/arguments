@@ -63,6 +63,70 @@ public sealed class ThrowIfDefaultAnalyzerTests
     }
 
     [Test]
+    public async Task Analyze_WhenArgumentTypeIsReferenceType_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(string argument)
+                {
+                    if (argument == default) throw new ArgumentException(nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfDefaultAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
+    public async Task Analyze_WhenArgumentTypeIsNullableValueType_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(Guid? argument)
+                {
+                    if (argument == default) throw new ArgumentException(nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfDefaultAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
+    public async Task Analyze_WhenArgumentTypeIsStructWithoutIEquatable_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            struct S
+            {
+            }
+
+            class C
+            {
+                void M(S argument)
+                {
+                    if (argument.Equals(default)) throw new ArgumentException(nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfDefaultAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
     public async Task Analyze_WhenParamNameIsStringLiteral_ReportsDiagnostic()
     {
         const string source = """

@@ -2,6 +2,8 @@ namespace NetEvolve.Arguments.Analyser;
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -60,9 +62,52 @@ public sealed class ThrowIfDefaultAnalyzer : DiagnosticAnalyzer
             return;
         }
 
+        if (!SatisfiesThrowIfDefaultConstraint(context.SemanticModel, argument, context.CancellationToken))
+        {
+            return;
+        }
+
         context.ReportDiagnostic(
             Diagnostic.Create(DiagnosticDescriptors.ThrowIfDefault, ifStatement.GetLocation(), argument.ToString())
         );
+    }
+
+    /// <summary>
+    /// Determines whether the type of <paramref name="argument"/> satisfies the constraint of
+    /// <c>ArgumentException.ThrowIfDefault&lt;T&gt;(T)</c>, namely <c>where T : struct, IEquatable&lt;T&gt;</c>.
+    /// </summary>
+    /// <param name="semanticModel">The semantic model used to resolve the argument's type.</param>
+    /// <param name="argument">The expression being validated.</param>
+    /// <param name="cancellationToken">The token used to cancel semantic-model lookups.</param>
+    /// <returns><see langword="true"/> if the argument's type is a non-nullable value type implementing <c>IEquatable&lt;T&gt;</c> closed over itself; otherwise, <see langword="false"/>.</returns>
+    private static bool SatisfiesThrowIfDefaultConstraint(
+        SemanticModel semanticModel,
+        ExpressionSyntax argument,
+        CancellationToken cancellationToken
+    )
+    {
+        var type = semanticModel.GetTypeInfo(argument, cancellationToken).Type;
+
+        if (type is null || !type.IsValueType)
+        {
+            return false;
+        }
+
+        if (type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+        {
+            return false;
+        }
+
+        var equatableType = semanticModel.Compilation.GetTypeByMetadataName("System.IEquatable`1");
+
+        if (equatableType is null)
+        {
+            return false;
+        }
+
+        var constructedEquatable = equatableType.Construct(type);
+
+        return type.AllInterfaces.Contains(constructedEquatable, SymbolEqualityComparer.Default);
     }
 
     /// <summary>Recognizes <c>arg.Equals(default)</c>/<c>arg.Equals(default(T))</c> and <c>arg == default</c>/<c>default == arg</c> (and the <c>default(T)</c> variants).</summary>
