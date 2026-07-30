@@ -42,6 +42,15 @@ public sealed class ThrowIfLengthAnalyzer : DiagnosticAnalyzer
             return;
         }
 
+        var receiverType = context
+            .SemanticModel.GetTypeInfo(comparison.Value.ValueExpression, context.CancellationToken)
+            .Type;
+
+        if (receiverType?.SpecialType != SpecialType.System_String)
+        {
+            return;
+        }
+
         if (
             !SyntaxHelpers.TryGetThrownException(
                 ifStatement,
