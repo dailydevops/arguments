@@ -59,9 +59,30 @@ public sealed class ThrowIfDisposedAnalyzer : DiagnosticAnalyzer
             context.CancellationToken
         );
 
-        if (enclosingSymbol is null || enclosingSymbol.IsStatic)
+        if (enclosingSymbol is null)
         {
             return;
+        }
+
+        // Walk up through local functions and lambdas: `IsStatic` on the innermost enclosing
+        // symbol only reflects the `static` modifier written on that local function/lambda
+        // itself, not on the member that contains it. The fix requires `this`, so bail out if
+        // any enclosing scope - the local function/lambda chain or the member containing it -
+        // is static.
+        var symbol = enclosingSymbol;
+        while (symbol is not null)
+        {
+            if (symbol.IsStatic)
+            {
+                return;
+            }
+
+            if (symbol is not IMethodSymbol { MethodKind: MethodKind.LocalFunction or MethodKind.AnonymousFunction })
+            {
+                break;
+            }
+
+            symbol = symbol.ContainingSymbol;
         }
 
         if (
