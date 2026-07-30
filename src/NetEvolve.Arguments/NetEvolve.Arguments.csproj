@@ -11,16 +11,35 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- This reference exists purely to guarantee build order, so the analyser DLL is present on
-         disk at the path the <None Pack="true"> item below points at. ReferenceOutputAssembly="false"
-         means it is never a compile-time or NuGet dependency. The analyzer is deliberately NOT applied
-         to this project itself (no OutputItemType="Analyzer") - self-analysis is intentionally disabled
-         here per the owner's decision. -->
+         disk before this project is packed. ReferenceOutputAssembly="false" means it is never a
+         compile-time or NuGet dependency. The analyzer is deliberately NOT applied to this project
+         itself (no OutputItemType="Analyzer") - self-analysis is intentionally disabled here per the
+         owner's decision. -->
     <ProjectReference Include="..\NetEvolve.Arguments.Analyser\NetEvolve.Arguments.Analyser.csproj" ReferenceOutputAssembly="false" PrivateAssets="All" />
   </ItemGroup>
-  <ItemGroup>
-    <!-- Not TFM-specific: evaluated once by the outer (cross-targeting) build, so the analyser DLL
-         ends up exactly once under analyzers/dotnet/cs regardless of how many TargetFrameworks this
-         project builds for. The analyser project only ever produces a netstandard2.0 output. -->
-    <None Include="..\NetEvolve.Arguments.Analyser\bin\$(Configuration)\netstandard2.0\NetEvolve.Arguments.Analyser.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-  </ItemGroup>
+  <Target Name="_PackAnalyzerAssembly" BeforeTargets="_GetPackageFiles">
+    <!--
+      Resolve the analyser assembly by actually building the analyser project and reading back its
+      real MSBuild output path (GetTargetPath), instead of relying on a hardcoded literal path.
+      This also makes `dotnet pack` work from a clean tree without a prior `dotnet build`: because
+      NetEvolve.Defaults sets GeneratePackageOnBuild=true for every packable project, the SDK's own
+      Pack target intentionally does NOT depend on Build in that case (Pack is expected to run as a
+      side effect of Build instead) - so plain `dotnet pack` never builds anything on its own. Forcing
+      the build here, scoped to a single explicit target invocation, sidesteps that.
+
+      Not TFM-specific: this target is only invoked once, by the outer (cross-targeting) build, so the
+      analyser DLL ends up exactly once under analyzers/dotnet/cs regardless of how many
+      TargetFrameworks this project builds for. The analyser project only ever produces a
+      netstandard2.0 output.
+    -->
+    <MSBuild Condition=" '$(NoBuild)' != 'true' " Projects="..\NetEvolve.Arguments.Analyser\NetEvolve.Arguments.Analyser.csproj" Targets="Build" Properties="Configuration=$(Configuration)" />
+    <MSBuild Projects="..\NetEvolve.Arguments.Analyser\NetEvolve.Arguments.Analyser.csproj" Targets="GetTargetPath" Properties="Configuration=$(Configuration)">
+      <Output TaskParameter="TargetOutputs" ItemName="_AnalyzerAssembly" />
+    </MSBuild>
+    <!-- Fail loudly rather than silently packing nothing if the analyser assembly could not be resolved. -->
+    <Error Condition=" '@(_AnalyzerAssembly)' == '' " Text="Could not resolve the analyser assembly from NetEvolve.Arguments.Analyser.csproj." />
+    <ItemGroup>
+      <None Include="@(_AnalyzerAssembly)" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    </ItemGroup>
+  </Target>
 </Project>
