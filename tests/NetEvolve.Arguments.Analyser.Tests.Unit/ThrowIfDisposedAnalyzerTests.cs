@@ -234,6 +234,20 @@ public sealed class ThrowIfDisposedAnalyzerTests
             source
         );
 
-        _ = await Assert.That(fixedSource).Contains("ObjectDisposedException.ThrowIf(_disposed, this);");
+        const string expected = """
+            using System;
+
+            class C
+            {
+                private bool _disposed;
+
+                void M()
+                {
+                    ObjectDisposedException.ThrowIf(_disposed, this);
+                }
+            }
+            """;
+
+        _ = await Assert.That(fixedSource).IsEqualTo(expected);
     }
 }

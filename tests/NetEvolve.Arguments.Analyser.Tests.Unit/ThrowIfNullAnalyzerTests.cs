@@ -972,4 +972,46 @@ public sealed class ThrowIfNullAnalyzerTests
         _ = await Assert.That(fixedSource).Contains("using System;");
         _ = await Assert.That(fixedSource).Contains("ArgumentNullException.ThrowIfNull(argument);");
     }
+
+    [Test]
+    public async Task CodeFix_WhenFixAllAppliedAcrossTwoMatchedSites_ReplacesBothWithThrowIfNullCalls()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(string? first, string? second)
+                {
+                    if (first is null) throw new ArgumentNullException(nameof(first));
+                    if (second is null) throw new ArgumentNullException(nameof(second));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).Count().IsEqualTo(2);
+
+        var fixedSource = await AnalyzerVerifier.ApplyFixAllAsync(
+            new ThrowIfNullAnalyzer(),
+            new ThrowIfNullCodeFixProvider(),
+            source
+        );
+
+        const string expected = """
+            using System;
+
+            class C
+            {
+                void M(string? first, string? second)
+                {
+                    ArgumentNullException.ThrowIfNull(first);
+                    ArgumentNullException.ThrowIfNull(second);
+                }
+            }
+            """;
+
+        _ = await Assert.That(fixedSource).IsEqualTo(expected);
+    }
 }
