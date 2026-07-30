@@ -35,10 +35,35 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzerTests
     }
 
     [Test]
+    public async Task Analyze_WhenExceptionHasEmptyMessageAndMatchingParamName_ReportsDiagnostic()
+    {
+        const string source = """
+            using System;
+            using System.Linq;
+
+            class C
+            {
+                void M(string argument)
+                {
+                    if (argument.Any(char.IsWhiteSpace)) throw new ArgumentException("", nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfContainsWhiteSpaceAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
+    }
+
+    [Test]
     [Arguments("if (argument.Any(char.IsWhiteSpace)) throw new ArgumentNullException(nameof(argument));")]
     [Arguments("if (argument.Any(c => c == ' ')) throw new ArgumentException(nameof(argument));")]
     [Arguments("if (argument.Any(c => char.IsWhiteSpace(other))) throw new ArgumentException(nameof(argument));")]
     [Arguments("if (argument.Contains(' ')) throw new ArgumentException(nameof(argument));")]
+    [Arguments("if (argument.Any(char.IsWhiteSpace)) throw new ArgumentException(nameof(other));")]
+    [Arguments(
+        "if (argument.Any(char.IsWhiteSpace)) throw new ArgumentException(\"has whitespace\", nameof(argument));"
+    )]
     [Arguments(
         """
             if (argument.Any(char.IsWhiteSpace))

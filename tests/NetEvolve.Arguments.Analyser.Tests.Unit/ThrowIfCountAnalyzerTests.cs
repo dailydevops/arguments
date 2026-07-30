@@ -41,9 +41,32 @@ public sealed class ThrowIfCountAnalyzerTests
     }
 
     [Test]
+    public async Task Analyze_WhenExceptionHasEmptyMessageAndMatchingParamName_ReportsDiagnostic()
+    {
+        const string source = """
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(ICollection<int> argument)
+                {
+                    if (argument.Count > 100) throw new ArgumentException("", nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfCountAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
+    }
+
+    [Test]
     [Arguments("if (argument.Count > 100) throw new ArgumentNullException(nameof(argument));")]
     [Arguments("if (argument.Length > 100) throw new ArgumentException(nameof(argument));")]
     [Arguments("if (argument.Count == 100) throw new ArgumentException(nameof(argument));")]
+    [Arguments("if (argument.Count > 100) throw new ArgumentException(nameof(other));")]
+    [Arguments("if (argument.Count > 100) throw new ArgumentException(\"too many\", nameof(argument));")]
     [Arguments(
         """
             if (argument.Count > 100)
@@ -63,7 +86,7 @@ public sealed class ThrowIfCountAnalyzerTests
 
             class C
             {
-                void M(ICollection<int> argument)
+                void M(ICollection<int> argument, ICollection<int> other)
                 {
                     {{statement}}
                 }

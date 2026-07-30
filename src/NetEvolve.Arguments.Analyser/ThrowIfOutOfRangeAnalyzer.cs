@@ -106,9 +106,7 @@ public sealed class ThrowIfOutOfRangeAnalyzer : DiagnosticAnalyzer
                 ArgumentOutOfRangeExceptionMetadataName,
                 context.CancellationToken,
                 out var objectCreation
-            )
-            || objectCreation!.ArgumentList is null
-            || objectCreation.ArgumentList.Arguments.Count is 0 or > 3
+            ) || objectCreation!.ArgumentList is null
         )
         {
             return;
@@ -120,6 +118,12 @@ public sealed class ThrowIfOutOfRangeAnalyzer : DiagnosticAnalyzer
         }
 
         var value = comparison.Value;
+
+        if (!SyntaxHelpers.IsSingleParamNameArgument(value.ValueExpression, objectCreation.ArgumentList))
+        {
+            return;
+        }
+
         string args;
 
         if (value.OtherExpression2 is not null)
