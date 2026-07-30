@@ -96,6 +96,11 @@ public sealed class ThrowIfNullCodeFixProvider : CodeFixProvider
 
         var newRoot = root.ReplaceNode(ifStatement, throwIfNullInvocation);
 
+        if (newRoot is CompilationUnitSyntax compilationUnit)
+        {
+            newRoot = UsingDirectiveInserter.EnsureSystemUsingDirective(compilationUnit);
+        }
+
         return document.WithSyntaxRoot(newRoot);
     }
 
@@ -141,7 +146,15 @@ public sealed class ThrowIfNullCodeFixProvider : CodeFixProvider
             (currentNode, _) => currentNode.WithLeadingTrivia(SyntaxFactory.ElasticMarker)
         );
 
-        return editor.GetChangedDocument();
+        var changedDocument = editor.GetChangedDocument();
+        var changedRoot = await changedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+        if (changedRoot is CompilationUnitSyntax compilationUnit)
+        {
+            return changedDocument.WithSyntaxRoot(UsingDirectiveInserter.EnsureSystemUsingDirective(compilationUnit));
+        }
+
+        return changedDocument;
     }
 
     /// <summary>Builds the <c>ArgumentNullException.ThrowIfNull(argument)</c> invocation expression used by both fix paths.</summary>
