@@ -10,6 +10,17 @@
     <PackageReleaseNotes>$(PackageProjectUrl)/releases/</PackageReleaseNotes>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NetEvolve.Arguments.Analyser\NetEvolve.Arguments.Analyser.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <!-- This reference exists purely to guarantee build order, so the analyser DLL is present on
+         disk at the path the <None Pack="true"> item below points at. ReferenceOutputAssembly="false"
+         means it is never a compile-time or NuGet dependency. The analyzer is deliberately NOT applied
+         to this project itself (no OutputItemType="Analyzer") - self-analysis is intentionally disabled
+         here per the owner's decision. -->
+    <ProjectReference Include="..\NetEvolve.Arguments.Analyser\NetEvolve.Arguments.Analyser.csproj" ReferenceOutputAssembly="false" PrivateAssets="All" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Not TFM-specific: evaluated once by the outer (cross-targeting) build, so the analyser DLL
+         ends up exactly once under analyzers/dotnet/cs regardless of how many TargetFrameworks this
+         project builds for. The analyser project only ever produces a netstandard2.0 output. -->
+    <None Include="..\NetEvolve.Arguments.Analyser\bin\$(Configuration)\netstandard2.0\NetEvolve.Arguments.Analyser.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 </Project>
