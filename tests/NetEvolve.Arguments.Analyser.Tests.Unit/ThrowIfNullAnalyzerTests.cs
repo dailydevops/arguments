@@ -286,4 +286,28 @@ public sealed class ThrowIfNullAnalyzerTests
         _ = await Assert.That(fixedSource).Contains("ArgumentNullException.ThrowIfNull(argument);");
         _ = await Assert.That(fixedSource).DoesNotContain("throw new ArgumentNullException");
     }
+
+    [Test]
+    public async Task CodeFix_WhenSourceHasNoUsingSystemAndThrowIsFullyQualified_AddsUsingSystemDirective()
+    {
+        const string source = """
+            class C
+            {
+                void M(string? argument)
+                {
+                    if (argument is null) throw new System.ArgumentNullException(nameof(argument));
+                }
+            }
+            """;
+
+        var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
+            new ThrowIfNullAnalyzer(),
+            new ThrowIfNullCodeFixProvider(),
+            source
+        );
+
+        _ = await Assert.That(fixedSource).Contains("using System;");
+        _ = await Assert.That(fixedSource).Contains("ArgumentNullException.ThrowIfNull(argument);");
+        _ = await Assert.That(fixedSource).DoesNotContain("throw new");
+    }
 }

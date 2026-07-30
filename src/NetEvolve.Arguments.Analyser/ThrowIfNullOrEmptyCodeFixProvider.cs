@@ -99,6 +99,11 @@ public sealed class ThrowIfNullOrEmptyCodeFixProvider : CodeFixProvider
 
         var newRoot = root.ReplaceNode(ifStatement, invocation);
 
+        if (newRoot is CompilationUnitSyntax compilationUnit)
+        {
+            newRoot = UsingDirectiveInserter.EnsureSystemUsingDirective(compilationUnit);
+        }
+
         return document.WithSyntaxRoot(newRoot);
     }
 }
