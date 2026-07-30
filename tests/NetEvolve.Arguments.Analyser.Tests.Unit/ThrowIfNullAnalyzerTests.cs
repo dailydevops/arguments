@@ -1,5 +1,7 @@
 namespace NetEvolve.Arguments.Analyser.Tests.Unit;
 
+using System;
+
 public sealed class ThrowIfNullAnalyzerTests
 {
     [Test]
@@ -126,6 +128,85 @@ public sealed class ThrowIfNullAnalyzerTests
         _ = await Assert.That(fixedSource).Contains("ArgumentNullException.ThrowIfNull(argument);");
         _ = await Assert.That(fixedSource).Contains("_value = argument;");
         _ = await Assert.That(fixedSource).DoesNotContain("throw new ArgumentNullException");
+    }
+
+    [Test]
+    public async Task CodeFix_WhenAppliedToCoalesceWithRegionTrivia_DoesNotDuplicateLeadingTrivia()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                private readonly string _value;
+
+                public C(string? argument)
+                {
+                    #region Guards
+                    _value = argument ?? throw new ArgumentNullException(nameof(argument));
+                    #endregion
+                }
+            }
+            """;
+
+        var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
+            new ThrowIfNullAnalyzer(),
+            new ThrowIfNullCodeFixProvider(),
+            source
+        );
+
+        var regionOccurrences = CountOccurrences(fixedSource, "#region Guards");
+        var endRegionOccurrences = CountOccurrences(fixedSource, "#endregion");
+
+        _ = await Assert.That(regionOccurrences).IsEqualTo(1);
+        _ = await Assert.That(endRegionOccurrences).IsEqualTo(1);
+        _ = await Assert.That(fixedSource).Contains("ArgumentNullException.ThrowIfNull(argument);");
+        _ = await Assert.That(fixedSource).Contains("_value = argument;");
+    }
+
+    [Test]
+    public async Task CodeFix_WhenAppliedToCoalesceWithLeadingComment_DoesNotDuplicateComment()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                private readonly string _value;
+
+                public C(string? argument)
+                {
+                    // validate input
+                    _value = argument ?? throw new ArgumentNullException(nameof(argument));
+                }
+            }
+            """;
+
+        var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
+            new ThrowIfNullAnalyzer(),
+            new ThrowIfNullCodeFixProvider(),
+            source
+        );
+
+        var commentOccurrences = CountOccurrences(fixedSource, "// validate input");
+
+        _ = await Assert.That(commentOccurrences).IsEqualTo(1);
+        _ = await Assert.That(fixedSource).Contains("ArgumentNullException.ThrowIfNull(argument);");
+        _ = await Assert.That(fixedSource).Contains("_value = argument;");
+    }
+
+    private static int CountOccurrences(string source, string value)
+    {
+        var count = 0;
+        var index = 0;
+
+        while ((index = source.IndexOf(value, index, StringComparison.Ordinal)) >= 0)
+        {
+            count++;
+            index += value.Length;
+        }
+
+        return count;
     }
 
     [Test]

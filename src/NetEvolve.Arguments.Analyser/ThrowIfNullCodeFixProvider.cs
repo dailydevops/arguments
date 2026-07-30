@@ -136,6 +136,10 @@ public sealed class ThrowIfNullCodeFixProvider : CodeFixProvider
 
         editor.InsertBefore(containingStatement, throwIfNullStatement);
         editor.ReplaceNode(coalesce, argument.WithoutTrivia());
+        editor.ReplaceNode(
+            containingStatement,
+            (currentNode, _) => currentNode.WithLeadingTrivia(SyntaxFactory.ElasticMarker)
+        );
 
         return editor.GetChangedDocument();
     }
