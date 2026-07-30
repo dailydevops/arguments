@@ -96,7 +96,7 @@ public sealed class ThrowIfEmptyGuidCodeFixProvider : CodeFixProvider
                     )
                 )
             )
-            .WithTriviaFrom(ifStatement)
+            .WithTriviaFromPreservingComments(ifStatement)
             .WithAdditionalAnnotations(Formatter.Annotation);
 
         var newRoot = root.ReplaceNode(ifStatement, invocation);
