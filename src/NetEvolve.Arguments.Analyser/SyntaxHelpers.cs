@@ -396,5 +396,5 @@ internal static class SyntaxHelpers
     /// <param name="right">The second expression.</param>
     /// <returns><see langword="true"/> if both expressions render to the same source text; otherwise, <see langword="false"/>.</returns>
     public static bool AreEquivalent(ExpressionSyntax left, ExpressionSyntax right) =>
-        left.ToString() == right.ToString();
+        Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AreEquivalent(left, right, topLevel: false);
 }

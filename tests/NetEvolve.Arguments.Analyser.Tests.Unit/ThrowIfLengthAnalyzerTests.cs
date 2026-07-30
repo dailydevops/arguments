@@ -38,6 +38,33 @@ public sealed class ThrowIfLengthAnalyzerTests
     }
 
     [Test]
+    public async Task Analyze_WhenCombinedRangeTargetsHaveInteriorTrivia_ReportsDiagnostic()
+    {
+        var source = """
+            using System;
+
+            class Options
+            {
+                public string Name { get; set; } = string.Empty;
+            }
+
+            class C
+            {
+                void M(Options options)
+                {
+                    if (options.Name.Length < 1 || options /*x*/ .Name.Length > 10)
+                        throw new ArgumentException(nameof(options));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfLengthAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
+        _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0006");
+    }
+
+    [Test]
     [Arguments("if (argument.Length > 100) throw new ArgumentOutOfRangeException(nameof(argument));")]
     [Arguments("if (argument.Count > 100) throw new ArgumentException(nameof(argument));")]
     [Arguments("if (argument.Length == 100) throw new ArgumentException(nameof(argument));")]
