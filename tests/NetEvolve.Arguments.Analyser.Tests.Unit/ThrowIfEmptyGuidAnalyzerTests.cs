@@ -150,6 +150,18 @@ public sealed class ThrowIfEmptyGuidAnalyzerTests
             source
         );
 
-        _ = await Assert.That(fixedSource).Contains("ArgumentException.ThrowIfEmptyGuid(argument);");
+        const string expected = """
+            using System;
+
+            class C
+            {
+                void M(Guid argument)
+                {
+                    ArgumentException.ThrowIfEmptyGuid(argument);
+                }
+            }
+            """;
+
+        _ = await Assert.That(fixedSource).IsEqualTo(expected);
     }
 }

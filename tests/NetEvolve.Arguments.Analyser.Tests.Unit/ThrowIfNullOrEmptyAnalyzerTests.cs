@@ -401,7 +401,19 @@ public sealed class ThrowIfNullOrEmptyAnalyzerTests
             source
         );
 
-        _ = await Assert.That(fixedSource).Contains("ArgumentException.ThrowIfNullOrEmpty(argument);");
+        const string expected = """
+            using System;
+
+            class C
+            {
+                void M(string? argument)
+                {
+                    ArgumentException.ThrowIfNullOrEmpty(argument);
+                }
+            }
+            """;
+
+        _ = await Assert.That(fixedSource).IsEqualTo(expected);
     }
 
     [Test]
@@ -425,6 +437,18 @@ public sealed class ThrowIfNullOrEmptyAnalyzerTests
             source
         );
 
-        _ = await Assert.That(fixedSource).Contains("ArgumentException.ThrowIfNullOrWhiteSpace(argument);");
+        const string expected = """
+            using System;
+
+            class C
+            {
+                void M(string? argument)
+                {
+                    ArgumentException.ThrowIfNullOrWhiteSpace(argument);
+                }
+            }
+            """;
+
+        _ = await Assert.That(fixedSource).IsEqualTo(expected);
     }
 }

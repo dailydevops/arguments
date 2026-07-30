@@ -31,7 +31,20 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzerTests
             source
         );
 
-        _ = await Assert.That(fixedSource).Contains("ArgumentException.ThrowIfContainsWhiteSpace(argument);");
+        const string expected = """
+            using System;
+            using System.Linq;
+
+            class C
+            {
+                void M(string argument)
+                {
+                    ArgumentException.ThrowIfContainsWhiteSpace(argument);
+                }
+            }
+            """;
+
+        _ = await Assert.That(fixedSource).IsEqualTo(expected);
     }
 
     [Test]

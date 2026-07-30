@@ -169,7 +169,19 @@ public sealed class ThrowIfDefaultAnalyzerTests
             source
         );
 
-        _ = await Assert.That(fixedSource).Contains("ArgumentException.ThrowIfDefault(argument);");
+        const string expected = """
+            using System;
+
+            class C
+            {
+                void M(Guid argument)
+                {
+                    ArgumentException.ThrowIfDefault(argument);
+                }
+            }
+            """;
+
+        _ = await Assert.That(fixedSource).IsEqualTo(expected);
     }
 
     [Test]

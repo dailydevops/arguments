@@ -40,7 +40,19 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
             source
         );
 
-        _ = await Assert.That(fixedSource).Contains($"ArgumentOutOfRangeException.{expectedInvocation}");
+        var expected = $$"""
+            using System;
+
+            class C
+            {
+                void M(int argument)
+                {
+                    ArgumentOutOfRangeException.{{expectedInvocation}}
+                }
+            }
+            """;
+
+        _ = await Assert.That(fixedSource).IsEqualTo(expected);
     }
 
     [Test]
@@ -68,7 +80,19 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
             source
         );
 
-        _ = await Assert.That(fixedSource).Contains("ArgumentOutOfRangeException.ThrowIfLessThan(argument, other);");
+        const string expected = """
+            using System;
+
+            class C
+            {
+                void M(int argument, int other)
+                {
+                    ArgumentOutOfRangeException.ThrowIfLessThan(argument, other);
+                }
+            }
+            """;
+
+        _ = await Assert.That(fixedSource).IsEqualTo(expected);
     }
 
     [Test]
@@ -161,7 +185,19 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
             source
         );
 
-        _ = await Assert.That(fixedSource).Contains("ArgumentOutOfRangeException.ThrowIfOutOfRange(argument, 5, 100);");
+        const string expected = """
+            using System;
+
+            class C
+            {
+                void M(int argument)
+                {
+                    ArgumentOutOfRangeException.ThrowIfOutOfRange(argument, 5, 100);
+                }
+            }
+            """;
+
+        _ = await Assert.That(fixedSource).IsEqualTo(expected);
     }
 
     [Test]

@@ -37,7 +37,21 @@ public sealed class ThrowIfCountAnalyzerTests
             source
         );
 
-        _ = await Assert.That(fixedSource).Contains($"ArgumentException.{expectedInvocation}");
+        var expected = $$"""
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class C
+            {
+                void M(ICollection<int> argument)
+                {
+                    ArgumentException.{{expectedInvocation}}
+                }
+            }
+            """;
+
+        _ = await Assert.That(fixedSource).IsEqualTo(expected);
     }
 
     [Test]

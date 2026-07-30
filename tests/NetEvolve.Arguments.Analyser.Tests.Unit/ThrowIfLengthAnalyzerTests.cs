@@ -34,7 +34,19 @@ public sealed class ThrowIfLengthAnalyzerTests
             source
         );
 
-        _ = await Assert.That(fixedSource).Contains($"ArgumentException.{expectedInvocation}");
+        var expected = $$"""
+            using System;
+
+            class C
+            {
+                void M(string argument)
+                {
+                    ArgumentException.{{expectedInvocation}}
+                }
+            }
+            """;
+
+        _ = await Assert.That(fixedSource).IsEqualTo(expected);
     }
 
     [Test]
