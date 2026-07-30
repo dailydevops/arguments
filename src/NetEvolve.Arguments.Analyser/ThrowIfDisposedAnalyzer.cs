@@ -60,8 +60,8 @@ public sealed class ThrowIfDisposedAnalyzer : DiagnosticAnalyzer
                 context.SemanticModel,
                 ObjectDisposedExceptionMetadataName,
                 context.CancellationToken,
-                out _
-            )
+                out var objectCreation
+            ) || objectCreation!.ArgumentList is null
         )
         {
             return;
@@ -96,6 +96,16 @@ public sealed class ThrowIfDisposedAnalyzer : DiagnosticAnalyzer
             }
 
             symbol = symbol.ContainingSymbol;
+        }
+
+        // ObjectDisposedException.ThrowIf(condition, instance) always derives the object name from the
+        // enclosing runtime type; it has no parameter for a message. The single-argument constructor
+        // (objectName) is already lossy in the same way and is accepted for parity with existing behavior,
+        // but the two-argument constructor (objectName, message) carries a message that would silently
+        // disappear, so it is rejected here.
+        if (objectCreation.ArgumentList.Arguments.Count > 1)
+        {
+            return;
         }
 
         context.ReportDiagnostic(

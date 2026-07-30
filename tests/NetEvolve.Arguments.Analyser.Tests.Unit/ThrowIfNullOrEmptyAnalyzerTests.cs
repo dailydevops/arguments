@@ -53,6 +53,46 @@ public sealed class ThrowIfNullOrEmptyAnalyzerTests
     }
 
     [Test]
+    public async Task Analyze_WhenParamNameArgumentNamesADifferentParameter_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(string? first, string? second)
+                {
+                    if (string.IsNullOrEmpty(first)) throw new ArgumentException("", nameof(second));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullOrEmptyAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
+    public async Task Analyze_WhenExceptionHasNonEmptyMessage_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(string? argument)
+                {
+                    if (string.IsNullOrEmpty(argument)) throw new ArgumentException("must not be empty", nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullOrEmptyAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
     public async Task Analyze_WhenThrowingArgumentNullException_DoesNotReportDiagnostic()
     {
         const string source = """

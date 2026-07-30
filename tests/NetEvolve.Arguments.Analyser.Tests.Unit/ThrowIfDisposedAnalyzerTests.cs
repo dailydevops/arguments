@@ -26,6 +26,28 @@ public sealed class ThrowIfDisposedAnalyzerTests
     }
 
     [Test]
+    public async Task Analyze_WhenExceptionHasAnExplicitMessage_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                private bool _disposed;
+
+                void M()
+                {
+                    if (_disposed) throw new ObjectDisposedException(nameof(C), "conn closed");
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfDisposedAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
     public async Task Analyze_WhenInStaticMethod_DoesNotReportDiagnostic()
     {
         const string source = """

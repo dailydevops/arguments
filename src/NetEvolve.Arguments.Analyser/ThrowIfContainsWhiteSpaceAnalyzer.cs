@@ -49,7 +49,17 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzer : DiagnosticAnalyzer
                 context.SemanticModel,
                 ArgumentExceptionMetadataName,
                 context.CancellationToken,
-                out _
+                out var objectCreation
+            ) || objectCreation!.ArgumentList is null
+        )
+        {
+            return;
+        }
+
+        if (
+            !ArgumentExceptionParamNameHelpers.IsSingleParamNameOrEmptyMessageArgument(
+                argument,
+                objectCreation.ArgumentList
             )
         )
         {

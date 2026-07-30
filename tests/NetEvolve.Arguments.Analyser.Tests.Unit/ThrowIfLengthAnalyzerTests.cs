@@ -53,7 +53,7 @@ public sealed class ThrowIfLengthAnalyzerTests
                 void M(Options options)
                 {
                     if (options.Name.Length < 1 || options /*x*/ .Name.Length > 10)
-                        throw new ArgumentException(nameof(options));
+                        throw new ArgumentException(nameof(options.Name));
                 }
             }
             """;
@@ -65,10 +65,32 @@ public sealed class ThrowIfLengthAnalyzerTests
     }
 
     [Test]
+    public async Task Analyze_WhenExceptionHasEmptyMessageAndMatchingParamName_ReportsDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(string argument)
+                {
+                    if (argument.Length > 100) throw new ArgumentException("", nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfLengthAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
+    }
+
+    [Test]
     [Arguments("if (argument.Length > 100) throw new ArgumentOutOfRangeException(nameof(argument));")]
     [Arguments("if (argument.Count > 100) throw new ArgumentException(nameof(argument));")]
     [Arguments("if (argument.Length == 100) throw new ArgumentException(nameof(argument));")]
     [Arguments("if (argument.Length < 5 || other.Length > 100) throw new ArgumentException(nameof(argument));")]
+    [Arguments("if (argument.Length > 100) throw new ArgumentException(nameof(other));")]
+    [Arguments("if (argument.Length > 100) throw new ArgumentException(\"too long\", nameof(argument));")]
     [Arguments(
         """
             if (argument.Length > 100)

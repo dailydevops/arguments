@@ -61,14 +61,25 @@ public sealed class ThrowIfCountAnalyzer : DiagnosticAnalyzer
                 context.SemanticModel,
                 ArgumentExceptionMetadataName,
                 context.CancellationToken,
-                out _
-            )
+                out var objectCreation
+            ) || objectCreation!.ArgumentList is null
         )
         {
             return;
         }
 
         var value = comparison.Value;
+
+        if (
+            !ArgumentExceptionParamNameHelpers.IsSingleParamNameOrEmptyMessageArgument(
+                value.ValueExpression,
+                objectCreation.ArgumentList
+            )
+        )
+        {
+            return;
+        }
+
         var args = value.OtherExpression2 is null
             ? $"{value.ValueExpression}, {value.OtherExpression}"
             : $"{value.ValueExpression}, {value.OtherExpression}, {value.OtherExpression2}";

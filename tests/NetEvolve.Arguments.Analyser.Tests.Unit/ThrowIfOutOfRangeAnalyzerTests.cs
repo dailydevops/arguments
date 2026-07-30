@@ -298,6 +298,70 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
     }
 
     [Test]
+    public async Task Analyze_WhenCombinedRangeMemberAccessOperandNamesRootParameter_DoesNotReportDiagnostic()
+    {
+        // The compared operand is the member-access chain "argument.Length", but the constructor here names
+        // only the root parameter ("argument"). Rewriting to the throw-helper would capture the whole chain
+        // via [CallerArgumentExpression] and change the reported ParamName from "argument" to "argument.Length",
+        // so this must not be reported even though the shape is otherwise a recognized combined range.
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(string argument)
+                {
+                    if (argument.Length < 5 || argument.Length > 100) throw new ArgumentOutOfRangeException(nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
+    public async Task Analyze_WhenParamNameArgumentDoesNotMatchComparedValue_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(int argument, int other)
+                {
+                    if (other < argument) throw new ArgumentOutOfRangeException(nameof(argument), "must not exceed");
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
+    public async Task Analyze_WhenExceptionArgumentIsUnrelatedToComparedValue_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    if (DateTime.Now.Hour < 9) throw new ArgumentOutOfRangeException("time");
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
     public async Task Analyze_WhenCombinedRangeOperandIsElementAccess_DoesNotReportDiagnostic()
     {
         const string source = """
@@ -318,6 +382,26 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
     }
 
     [Test]
+    public async Task Analyze_WhenExceptionHasActualValueAndMessage_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(int argument)
+                {
+                    if (argument < 0) throw new ArgumentOutOfRangeException(nameof(argument), argument, "msg");
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
     public async Task Analyze_WhenCombinedRangeOperandIsMemberAccess_ReportsDiagnosticAndFixes()
     {
         const string source = """
@@ -327,7 +411,7 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
             {
                 void M(string argument)
                 {
-                    if (argument.Length < 5 || argument.Length > 100) throw new ArgumentOutOfRangeException(nameof(argument));
+                    if (argument.Length < 5 || argument.Length > 100) throw new ArgumentOutOfRangeException(nameof(argument.Length));
                 }
             }
             """;
@@ -346,6 +430,26 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
         _ = await Assert
             .That(fixedSource)
             .Contains("ArgumentOutOfRangeException.ThrowIfOutOfRange(argument.Length, 5, 100);");
+    }
+
+    [Test]
+    public async Task Analyze_WhenExceptionHasNoArguments_ReportsDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(int argument)
+                {
+                    if (argument < 0) throw new ArgumentOutOfRangeException();
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
     }
 
     [Test]
