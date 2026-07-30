@@ -74,4 +74,81 @@ public sealed class ThrowIfCountAnalyzerTests
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
+
+    [Test]
+    public async Task Analyze_WhenReceiverIsUserDefinedNonCollectionType_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class Counter
+            {
+                public int Count { get; }
+            }
+
+            class C
+            {
+                void M(Counter argument)
+                {
+                    if (argument.Count > 100) throw new ArgumentException(nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfCountAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
+    public async Task Analyze_WhenReceiverIsNonGenericCollection_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+            using System.Collections;
+
+            class C
+            {
+                void M(ArrayList argument)
+                {
+                    if (argument.Count > 100) throw new ArgumentException(nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfCountAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
+    public async Task Analyze_WhenCountInvocationIsNotLinqEnumerableCount_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class Counter : IEnumerable<int>
+            {
+                public int Count() => 0;
+
+                public IEnumerator<int> GetEnumerator() => new List<int>().GetEnumerator();
+
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+
+            class C
+            {
+                void M(Counter argument)
+                {
+                    if (argument.Count() > 100) throw new ArgumentException(nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfCountAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
 }
