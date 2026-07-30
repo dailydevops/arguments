@@ -71,4 +71,51 @@ public sealed class ThrowIfLengthAnalyzerTests
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
+
+    [Test]
+    [Arguments("int[] argument", "argument.Length > 100")]
+    [Arguments("System.Span<char> argument", "argument.Length > 100")]
+    public async Task Analyze_WhenLengthReceiverIsNotString_DoesNotReportDiagnostic(string parameter, string condition)
+    {
+        var source = $$"""
+            using System;
+
+            class C
+            {
+                void M({{parameter}})
+                {
+                    if ({{condition}}) throw new ArgumentException(nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfLengthAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
+    public async Task Analyze_WhenLengthReceiverIsUserDefinedTypeWithLengthProperty_DoesNotReportDiagnostic()
+    {
+        var source = """
+            using System;
+
+            class Buffer
+            {
+                public int Length { get; }
+            }
+
+            class C
+            {
+                void M(Buffer argument)
+                {
+                    if (argument.Length > 100) throw new ArgumentException(nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfLengthAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
 }
