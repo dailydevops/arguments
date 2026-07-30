@@ -428,6 +428,213 @@ public sealed class ThrowIfNullAnalyzerTests
     }
 
     [Test]
+    public async Task Analyze_WhenCoalesceInAnonymousMethodStatement_ReportsDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    Action<string> f = delegate(string s)
+                    {
+                        _ = s ?? throw new ArgumentNullException(nameof(s));
+                    };
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
+        _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0001");
+    }
+
+    [Test]
+    public async Task Analyze_WhenCoalesceInExpressionBodiedProperty_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                private readonly string? _a;
+
+                public string P => _a ?? throw new ArgumentNullException(nameof(_a));
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
+    public async Task Analyze_WhenCoalesceInConditionalExpressionWhenFalseBranch_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(bool flag, string? a)
+                {
+                    var x = flag ? "d" : (a ?? throw new ArgumentNullException(nameof(a)));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
+    public async Task Analyze_WhenCoalesceIsConditionOfTernary_ReportsDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(bool? b)
+                {
+                    var x = (b ?? throw new ArgumentNullException(nameof(b))) ? "y" : "n";
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
+        _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0001");
+    }
+
+    [Test]
+    public async Task Analyze_WhenCoalesceIsRightOperandOfEnclosingCoalesce_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(string? a, string? b)
+                {
+                    var x = a ?? (b ?? throw new ArgumentNullException(nameof(b)));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
+    public async Task Analyze_WhenCoalesceIsRightOperandOfLogicalAnd_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(bool flag, bool? b)
+                {
+                    _ = flag && (b ?? throw new ArgumentNullException(nameof(b)));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
+    public async Task Analyze_WhenCoalesceIsRightOperandOfLogicalOr_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(bool flag, bool? b)
+                {
+                    _ = flag || (b ?? throw new ArgumentNullException(nameof(b)));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
+    public async Task Analyze_WhenCoalesceIsLeftOperandOfLogicalAnd_ReportsDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(bool flag, bool? b)
+                {
+                    _ = (b ?? throw new ArgumentNullException(nameof(b))) && flag;
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
+        _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0001");
+    }
+
+    [Test]
+    public async Task Analyze_WhenCoalesceIsLeftOperandOfLogicalOr_ReportsDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(bool flag, bool? b)
+                {
+                    _ = (b ?? throw new ArgumentNullException(nameof(b))) || flag;
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
+        _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0001");
+    }
+
+    [Test]
+    public async Task Analyze_WhenCoalesceIsLeftOperandOfEnclosingCoalesce_ReportsDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(string? a)
+                {
+                    var x = (a ?? throw new ArgumentNullException(nameof(a))) ?? "d";
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
+        _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0001");
+    }
+
+    [Test]
     public async Task CodeFix_WhenCoalesceIsNestedInsideIfStatement_HoistsThrowIfNullAndKeepsAssignment()
     {
         const string source = """
