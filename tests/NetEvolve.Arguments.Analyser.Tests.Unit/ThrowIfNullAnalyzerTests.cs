@@ -228,6 +228,39 @@ public sealed class ThrowIfNullAnalyzerTests
     }
 
     [Test]
+    public async Task CodeFix_WhenAppliedToCoalesceInWhileEmbeddedStatementWithLeadingComment_DoesNotDuplicateComment()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                private string _value = string.Empty;
+
+                void M(string? argument, bool flag)
+                {
+                    while (flag)
+                        // validate input
+                        _value = argument ?? throw new ArgumentNullException(nameof(argument));
+                }
+            }
+            """;
+
+        var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
+            new ThrowIfNullAnalyzer(),
+            new ThrowIfNullCodeFixProvider(),
+            source
+        );
+
+        var commentOccurrences = CountOccurrences(fixedSource, "// validate input");
+
+        _ = await Assert.That(commentOccurrences).IsEqualTo(1);
+        _ = await Assert.That(fixedSource).Contains("ArgumentNullException.ThrowIfNull(argument);");
+        _ = await Assert.That(fixedSource).Contains("_value = argument;");
+        _ = await Assert.That(fixedSource).DoesNotContain("throw new ArgumentNullException(nameof(argument))");
+    }
+
+    [Test]
     public async Task CodeFix_WhenAppliedToCoalesceInLockEmbeddedStatement_WrapsInBlock()
     {
         const string source = """
