@@ -236,4 +236,73 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
+
+    [Test]
+    public async Task Analyze_WhenOperandIsEnumComparedForEquality_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            enum Kind
+            {
+                None,
+            }
+
+            class C
+            {
+                void M(Kind argument)
+                {
+                    if (argument == Kind.None) throw new ArgumentOutOfRangeException(nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
+    public async Task Analyze_WhenOperandIsObject_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(object argument, object other)
+                {
+                    if (argument == other) throw new ArgumentOutOfRangeException(nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
+    public async Task Analyze_WhenOperandTypeImplementsNeitherEquatableNorComparable_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class UnsupportedType
+            {
+            }
+
+            class C
+            {
+                void M(UnsupportedType argument, UnsupportedType other)
+                {
+                    if (argument == other) throw new ArgumentOutOfRangeException(nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
 }
