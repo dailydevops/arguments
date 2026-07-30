@@ -310,4 +310,138 @@ public sealed class ThrowIfNullAnalyzerTests
         _ = await Assert.That(fixedSource).Contains("ArgumentNullException.ThrowIfNull(argument);");
         _ = await Assert.That(fixedSource).DoesNotContain("throw new");
     }
+
+    [Test]
+    public async Task CodeFix_WhenFileScopedNamespaceHasNoUsingSystem_AddsUsingSystemDirective()
+    {
+        const string source = """
+            namespace Test;
+
+            class C
+            {
+                void M(string? argument)
+                {
+                    if (argument is null) throw new System.ArgumentNullException(nameof(argument));
+                }
+            }
+            """;
+
+        var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
+            new ThrowIfNullAnalyzer(),
+            new ThrowIfNullCodeFixProvider(),
+            source
+        );
+
+        _ = await Assert.That(fixedSource).Contains("using System;");
+        _ = await Assert.That(fixedSource).Contains("ArgumentNullException.ThrowIfNull(argument);");
+        _ = await Assert.That(fixedSource.Split("using System;").Length).IsEqualTo(2);
+    }
+
+    [Test]
+    public async Task CodeFix_WhenFileScopedNamespaceAlreadyHasUsingSystem_DoesNotDuplicateDirective()
+    {
+        const string source = """
+            namespace Test;
+
+            using System;
+
+            class C
+            {
+                void M(string? argument)
+                {
+                    if (argument is null) throw new System.ArgumentNullException(nameof(argument));
+                }
+            }
+            """;
+
+        var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
+            new ThrowIfNullAnalyzer(),
+            new ThrowIfNullCodeFixProvider(),
+            source
+        );
+
+        _ = await Assert.That(fixedSource).Contains("ArgumentNullException.ThrowIfNull(argument);");
+        _ = await Assert.That(fixedSource.Split("using System;").Length).IsEqualTo(2);
+    }
+
+    [Test]
+    public async Task CodeFix_WhenBlockScopedNamespaceHasNoUsingSystem_AddsUsingSystemDirective()
+    {
+        const string source = """
+            namespace Test
+            {
+                class C
+                {
+                    void M(string? argument)
+                    {
+                        if (argument is null) throw new System.ArgumentNullException(nameof(argument));
+                    }
+                }
+            }
+            """;
+
+        var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
+            new ThrowIfNullAnalyzer(),
+            new ThrowIfNullCodeFixProvider(),
+            source
+        );
+
+        _ = await Assert.That(fixedSource).Contains("using System;");
+        _ = await Assert.That(fixedSource).Contains("ArgumentNullException.ThrowIfNull(argument);");
+        _ = await Assert.That(fixedSource.Split("using System;").Length).IsEqualTo(2);
+    }
+
+    [Test]
+    public async Task CodeFix_WhenBlockScopedNamespaceAlreadyHasUsingSystem_DoesNotDuplicateDirective()
+    {
+        const string source = """
+            namespace Test
+            {
+                using System;
+
+                class C
+                {
+                    void M(string? argument)
+                    {
+                        if (argument is null) throw new System.ArgumentNullException(nameof(argument));
+                    }
+                }
+            }
+            """;
+
+        var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
+            new ThrowIfNullAnalyzer(),
+            new ThrowIfNullCodeFixProvider(),
+            source
+        );
+
+        _ = await Assert.That(fixedSource).Contains("ArgumentNullException.ThrowIfNull(argument);");
+        _ = await Assert.That(fixedSource.Split("using System;").Length).IsEqualTo(2);
+    }
+
+    [Test]
+    public async Task CodeFix_WhenSourceHasOnlyAliasedSystemUsing_AddsRealUsingSystemDirective()
+    {
+        const string source = """
+            using SysArg = System;
+
+            class C
+            {
+                void M(string? argument)
+                {
+                    if (argument is null) throw new System.ArgumentNullException(nameof(argument));
+                }
+            }
+            """;
+
+        var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
+            new ThrowIfNullAnalyzer(),
+            new ThrowIfNullCodeFixProvider(),
+            source
+        );
+
+        _ = await Assert.That(fixedSource).Contains("using SysArg = System;");
+        _ = await Assert.That(fixedSource).Contains("using System;");
+        _ = await Assert.That(fixedSource).Contains("ArgumentNullException.ThrowIfNull(argument);");
+    }
 }
