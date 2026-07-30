@@ -40,12 +40,12 @@ public sealed class ThrowIfNullCodeFixProvider : CodeFixProvider
         var diagnostic = context.Diagnostics[0];
         var node = root.FindNode(diagnostic.Location.SourceSpan);
 
-        if (node.FirstAncestorOrSelf<IfStatementSyntax>() is { } ifStatement)
+        if (node is BinaryExpressionSyntax { RawKind: (int)SyntaxKind.CoalesceExpression } coalesce)
         {
             context.RegisterCodeFix(
                 CodeAction.Create(
                     Title,
-                    cancellationToken => ApplyIfStatementFixAsync(context.Document, ifStatement, cancellationToken),
+                    cancellationToken => ApplyCoalesceFixAsync(context.Document, coalesce, cancellationToken),
                     equivalenceKey: Title
                 ),
                 diagnostic
@@ -53,12 +53,12 @@ public sealed class ThrowIfNullCodeFixProvider : CodeFixProvider
             return;
         }
 
-        if (node is BinaryExpressionSyntax { RawKind: (int)SyntaxKind.CoalesceExpression } coalesce)
+        if (node.FirstAncestorOrSelf<IfStatementSyntax>() is { } ifStatement)
         {
             context.RegisterCodeFix(
                 CodeAction.Create(
                     Title,
-                    cancellationToken => ApplyCoalesceFixAsync(context.Document, coalesce, cancellationToken),
+                    cancellationToken => ApplyIfStatementFixAsync(context.Document, ifStatement, cancellationToken),
                     equivalenceKey: Title
                 ),
                 diagnostic
@@ -83,6 +83,7 @@ public sealed class ThrowIfNullCodeFixProvider : CodeFixProvider
             root is null
             || !SyntaxHelpers.TryGetNullCheckedExpression(ifStatement.Condition, out var argument)
             || argument is null
+            || SyntaxHelpers.GetSingleThrowStatement(ifStatement.Statement) is null
         )
         {
             return document;

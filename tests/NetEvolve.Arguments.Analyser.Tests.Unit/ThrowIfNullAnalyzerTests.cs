@@ -263,6 +263,64 @@ public sealed class ThrowIfNullAnalyzerTests
     }
 
     [Test]
+    public async Task CodeFix_WhenCoalesceIsNestedInsideIfStatement_HoistsThrowIfNullAndKeepsAssignment()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(string? target, string? source)
+                {
+                    if (target is null)
+                    {
+                        target = source ?? throw new ArgumentNullException(nameof(source));
+                    }
+                }
+            }
+            """;
+
+        var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
+            new ThrowIfNullAnalyzer(),
+            new ThrowIfNullCodeFixProvider(),
+            source
+        );
+
+        _ = await Assert.That(fixedSource).Contains("ArgumentNullException.ThrowIfNull(source);");
+        _ = await Assert.That(fixedSource).Contains("target = source;");
+        _ = await Assert.That(fixedSource).DoesNotContain("throw new ArgumentNullException");
+    }
+
+    [Test]
+    public async Task CodeFix_WhenCoalesceIsNestedInsideUnrelatedIfStatement_StillAppliesCoalesceFix()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(bool flag, string? source)
+                {
+                    if (flag)
+                    {
+                        var value = source ?? throw new ArgumentNullException(nameof(source));
+                    }
+                }
+            }
+            """;
+
+        var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
+            new ThrowIfNullAnalyzer(),
+            new ThrowIfNullCodeFixProvider(),
+            source
+        );
+
+        _ = await Assert.That(fixedSource).Contains("ArgumentNullException.ThrowIfNull(source);");
+        _ = await Assert.That(fixedSource).Contains("var value = source;");
+        _ = await Assert.That(fixedSource).DoesNotContain("throw new ArgumentNullException");
+    }
+
+    [Test]
     public async Task CodeFix_WhenApplied_ReplacesWithThrowIfNullCall()
     {
         const string source = """
