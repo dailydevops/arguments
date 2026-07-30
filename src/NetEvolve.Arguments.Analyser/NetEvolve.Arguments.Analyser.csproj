@@ -3,13 +3,21 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <IsRoslynComponent>true</IsRoslynComponent>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-    <IsPackable>false</IsPackable>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <IncludeSymbols>false</IncludeSymbols>
     <NoWarn>$(NoWarn);RS1038</NoWarn>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_AddAnalyzersToOutput</TargetsForTfmSpecificContentInPackage>
     <Description>Roslyn analyzers and code fixes that promote using NetEvolve.Arguments / BCL throw-helper APIs instead of manual argument-validation `if` blocks, on every target framework supported by NetEvolve.Arguments.</Description>
     <PackageTags>guard;clause;exceptions;argument-validation;analyzer;roslyn;code-fix;argument-exception;argumentnullexception</PackageTags>
     <PackageProjectUrl>https://github.com/dailydevops/arguments</PackageProjectUrl>
     <RepositoryUrl>https://github.com/dailydevops/arguments.git</RepositoryUrl>
   </PropertyGroup>
+  <ItemGroup>
+    <None Include="_._" Pack="true" PackagePath="lib\$(TargetFramework)" Visible="false" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
@@ -19,4 +27,9 @@
     <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
     <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
   </ItemGroup>
+  <Target Name="_AddAnalyzersToOutput">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="$(OutputPath)\$(AssemblyName).dll" PackagePath="analyzers/dotnet/cs" />
+    </ItemGroup>
+  </Target>
 </Project>
