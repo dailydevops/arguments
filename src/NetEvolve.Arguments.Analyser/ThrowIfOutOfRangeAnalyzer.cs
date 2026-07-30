@@ -22,6 +22,29 @@ public sealed class ThrowIfOutOfRangeAnalyzer : DiagnosticAnalyzer
     /// <summary>The fully-qualified metadata name of the open generic <see cref="IComparable{T}"/> interface.</summary>
     private const string ComparableMetadataName = "System.IComparable`1";
 
+    /// <summary>The fully-qualified metadata name of <c>System.Half</c>.</summary>
+    private const string HalfMetadataName = "System.Half";
+
+    /// <summary>
+    /// The throw-helper members whose implementation relies on <see cref="IComparable{T}.CompareTo"/>. For IEEE
+    /// floating-point operands (<see cref="float"/>, <see cref="double"/>, <c>System.Half</c>), <c>CompareTo</c>
+    /// disagrees with the relational operators on <c>NaN</c>: e.g. <c>double.NaN.CompareTo(5.0)</c> is negative,
+    /// while <c>double.NaN &lt; 5.0</c> is <see langword="false"/>. Rewriting such a comparison into the matching
+    /// throw-helper would silently change which values throw, so these helpers are excluded for those operand types.
+    /// <c>ThrowIfEqual</c>/<c>ThrowIfNotEqual</c> (backed by <see cref="EqualityComparer{T}"/>) and <c>ThrowIfZero</c>
+    /// (backed by <c>INumberBase&lt;T&gt;.IsZero</c>) do not have this divergence and are intentionally not listed.
+    /// </summary>
+    private static readonly ImmutableHashSet<string> NaNSensitiveHelperNames = ImmutableHashSet.Create(
+        StringComparer.Ordinal,
+        "ThrowIfNegative",
+        "ThrowIfNegativeOrZero",
+        "ThrowIfLessThan",
+        "ThrowIfLessThanOrEqual",
+        "ThrowIfGreaterThan",
+        "ThrowIfGreaterThanOrEqual",
+        "ThrowIfOutOfRange"
+    );
+
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
         ImmutableArray.Create(DiagnosticDescriptors.ThrowIfOutOfRange);
@@ -60,6 +83,18 @@ public sealed class ThrowIfOutOfRangeAnalyzer : DiagnosticAnalyzer
         var ifStatement = (IfStatementSyntax)context.Node;
 
         if (!TryGetComparison(ifStatement.Condition, out var comparison) || comparison is null)
+        {
+            return;
+        }
+
+        if (
+            NaNSensitiveHelperNames.Contains(comparison.Value.HelperName)
+            && IsIeeeFloatingPointOperand(
+                context.SemanticModel,
+                comparison.Value.ValueExpression,
+                context.CancellationToken
+            )
+        )
         {
             return;
         }
@@ -150,6 +185,39 @@ public sealed class ThrowIfOutOfRangeAnalyzer : DiagnosticAnalyzer
         return operandType.AllInterfaces.Any(implementedInterface =>
             SymbolEqualityComparer.Default.Equals(implementedInterface, requiredInterface)
         );
+    }
+
+    /// <summary>
+    /// Determines whether an operand's type is an IEEE floating-point type (<see cref="float"/>, <see cref="double"/>,
+    /// or <c>System.Half</c>) — the types for which <see cref="IComparable{T}.CompareTo"/> and the relational
+    /// operators disagree on <c>NaN</c>.
+    /// </summary>
+    /// <param name="semanticModel">The semantic model used to resolve the operand's type.</param>
+    /// <param name="operand">The compared expression whose type is inspected.</param>
+    /// <param name="cancellationToken">The token used to cancel semantic-model lookups.</param>
+    /// <returns><see langword="true"/> if <paramref name="operand"/>'s type is <see cref="float"/>, <see cref="double"/>, or <c>System.Half</c>; otherwise, <see langword="false"/>.</returns>
+    private static bool IsIeeeFloatingPointOperand(
+        SemanticModel semanticModel,
+        ExpressionSyntax operand,
+        CancellationToken cancellationToken
+    )
+    {
+        var type = semanticModel.GetTypeInfo(operand, cancellationToken).Type;
+
+        if (type is null)
+        {
+            return false;
+        }
+
+        if (type.SpecialType is SpecialType.System_Single or SpecialType.System_Double)
+        {
+            return true;
+        }
+
+        // System.Half has no SpecialType and may not exist on older target frameworks, so a null lookup is normal.
+        var halfType = semanticModel.Compilation.GetTypeByMetadataName(HalfMetadataName);
+
+        return halfType is not null && SymbolEqualityComparer.Default.Equals(type, halfType);
     }
 
     /// <summary>

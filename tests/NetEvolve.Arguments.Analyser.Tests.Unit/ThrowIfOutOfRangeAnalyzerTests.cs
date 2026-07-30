@@ -165,6 +165,71 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
     }
 
     [Test]
+    public async Task Analyze_WhenCombinedRangeOperandIsDouble_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(double argument)
+                {
+                    if (argument < 5 || argument > 100) throw new ArgumentOutOfRangeException(nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
+    [Arguments("argument < 42")]
+    [Arguments("argument <= 42")]
+    [Arguments("argument > 42")]
+    [Arguments("argument >= 42")]
+    public async Task Analyze_WhenRelationalOperandIsFloat_DoesNotReportDiagnostic(string condition)
+    {
+        var source = $$"""
+            using System;
+
+            class C
+            {
+                void M(float argument)
+                {
+                    if ({{condition}}) throw new ArgumentOutOfRangeException(nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
+    public async Task Analyze_WhenEqualityOperandIsDouble_ReportsDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(double argument)
+                {
+                    if (argument == 42) throw new ArgumentOutOfRangeException(nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
+        _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0003");
+    }
+
+    [Test]
     public async Task Analyze_WhenIfHasElseClause_DoesNotReportDiagnostic()
     {
         const string source = """
