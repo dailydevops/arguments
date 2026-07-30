@@ -53,7 +53,7 @@ public sealed class ThrowIfLengthAnalyzerTests
                 void M(Options options)
                 {
                     if (options.Name.Length < 1 || options /*x*/ .Name.Length > 10)
-                        throw new ArgumentException(nameof(options));
+                        throw new ArgumentException(nameof(options.Name));
                 }
             }
             """;
