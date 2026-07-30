@@ -2,6 +2,8 @@ namespace NetEvolve.Arguments.Analyser;
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -13,6 +15,12 @@ public sealed class ThrowIfOutOfRangeAnalyzer : DiagnosticAnalyzer
 {
     /// <summary>The fully-qualified metadata name of <see cref="ArgumentOutOfRangeException"/>.</summary>
     private const string ArgumentOutOfRangeExceptionMetadataName = "System.ArgumentOutOfRangeException";
+
+    /// <summary>The fully-qualified metadata name of the open generic <see cref="IEquatable{T}"/> interface.</summary>
+    private const string EquatableMetadataName = "System.IEquatable`1";
+
+    /// <summary>The fully-qualified metadata name of the open generic <see cref="IComparable{T}"/> interface.</summary>
+    private const string ComparableMetadataName = "System.IComparable`1";
 
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
@@ -71,6 +79,11 @@ public sealed class ThrowIfOutOfRangeAnalyzer : DiagnosticAnalyzer
             return;
         }
 
+        if (!IsSupportedOperandType(comparison.Value, context.SemanticModel, context.CancellationToken))
+        {
+            return;
+        }
+
         var value = comparison.Value;
         string args;
 
@@ -94,6 +107,48 @@ public sealed class ThrowIfOutOfRangeAnalyzer : DiagnosticAnalyzer
                 value.HelperName,
                 args
             )
+        );
+    }
+
+    /// <summary>
+    /// Determines whether the compared operand's type actually satisfies the generic constraint of the
+    /// <see cref="ArgumentOutOfRangeException"/> throw-helper the comparison would be rewritten to, so that
+    /// the rewritten call is guaranteed to compile.
+    /// </summary>
+    /// <param name="comparison">The recognized comparison.</param>
+    /// <param name="semanticModel">The semantic model used to resolve the operand's type.</param>
+    /// <param name="cancellationToken">The token used to cancel type resolution.</param>
+    /// <returns><see langword="true"/> if the operand type implements the required generic interface closed over itself; otherwise, <see langword="false"/>.</returns>
+    private static bool IsSupportedOperandType(
+        ComparisonResult comparison,
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken
+    )
+    {
+        var operandType = semanticModel.GetTypeInfo(comparison.ValueExpression, cancellationToken).Type;
+
+        if (operandType is null || operandType.TypeKind == TypeKind.Error)
+        {
+            return false;
+        }
+
+        var requiredInterfaceMetadataName = comparison.HelperName is "ThrowIfEqual" or "ThrowIfNotEqual"
+            ? EquatableMetadataName
+            : ComparableMetadataName;
+
+        var unconstructedRequiredInterface = semanticModel.Compilation.GetTypeByMetadataName(
+            requiredInterfaceMetadataName
+        );
+
+        if (unconstructedRequiredInterface is null)
+        {
+            return false;
+        }
+
+        var requiredInterface = unconstructedRequiredInterface.Construct(operandType);
+
+        return operandType.AllInterfaces.Any(implementedInterface =>
+            SymbolEqualityComparer.Default.Equals(implementedInterface, requiredInterface)
         );
     }
 
