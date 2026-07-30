@@ -69,9 +69,58 @@ public sealed class ThrowIfNullAnalyzer : DiagnosticAnalyzer
             return;
         }
 
+        if (IsConditionallyEvaluatedRelativeToContainingStatement(binary))
+        {
+            return;
+        }
+
         context.ReportDiagnostic(
             Diagnostic.Create(DiagnosticDescriptors.ThrowIfNull, binary.GetLocation(), argument.ToString())
         );
+    }
+
+    /// <summary>
+    /// Determines whether hoisting an <c>ArgumentNullException.ThrowIfNull</c> call from
+    /// <paramref name="coalesce"/> to its nearest enclosing <see cref="StatementSyntax"/> would change program
+    /// behavior, either because it would move the code out of an anonymous function or local function (changing
+    /// when it executes), out of an expression-bodied member (escaping the member entirely), or out of a
+    /// conditionally-evaluated subtree, such as a ternary branch or the right-hand side of <c>??</c>, <c>&amp;&amp;</c>,
+    /// or <c>||</c> (changing whether it executes at all).
+    /// </summary>
+    /// <param name="coalesce">The coalesce expression under analysis.</param>
+    /// <returns><see langword="true"/> if hoisting would change semantics; otherwise, <see langword="false"/>.</returns>
+    private static bool IsConditionallyEvaluatedRelativeToContainingStatement(BinaryExpressionSyntax coalesce)
+    {
+        SyntaxNode? previous = coalesce;
+
+        for (var current = coalesce.Parent; current is not null; current = current.Parent)
+        {
+            switch (current)
+            {
+                case AnonymousFunctionExpressionSyntax:
+                case LocalFunctionStatementSyntax:
+                case ArrowExpressionClauseSyntax:
+                    return true;
+                case ConditionalExpressionSyntax conditional
+                    when previous == conditional.WhenTrue || previous == conditional.WhenFalse:
+                    return true;
+                case BinaryExpressionSyntax binary
+                    when previous == binary.Right
+                        && (
+                            binary.IsKind(SyntaxKind.CoalesceExpression)
+                            || binary.IsKind(SyntaxKind.LogicalAndExpression)
+                            || binary.IsKind(SyntaxKind.LogicalOrExpression)
+                        ):
+                    return true;
+                case StatementSyntax:
+                    // Reached the containing statement without crossing a boundary that would change behavior.
+                    return false;
+            }
+
+            previous = current;
+        }
+
+        return false;
     }
 
     /// <summary>Analyzes an <c>if</c> statement and reports NEA0001 when it is a null-check-then-throw of <see cref="ArgumentNullException"/>.</summary>

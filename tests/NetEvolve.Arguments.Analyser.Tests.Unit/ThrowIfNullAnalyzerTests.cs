@@ -344,6 +344,90 @@ public sealed class ThrowIfNullAnalyzerTests
     }
 
     [Test]
+    public async Task Analyze_WhenCoalesceInSimpleLambdaParameterExpression_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    Func<string, string> f = s => s ?? throw new ArgumentNullException(nameof(s));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
+    public async Task Analyze_WhenCoalesceInParenthesizedLambdaCapturingOuterVariable_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(string? a)
+                {
+                    Func<string> f = () => a ?? throw new ArgumentNullException(nameof(a));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
+    public async Task Analyze_WhenCoalesceInsideConditionalExpressionBranch_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(bool flag, string? a)
+                {
+                    var x = flag ? (a ?? throw new ArgumentNullException(nameof(a))) : "d";
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
+    public async Task Analyze_WhenCoalesceInStatementBodiedLambda_ReportsDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    Action<string> f = s =>
+                    {
+                        _ = s ?? throw new ArgumentNullException(nameof(s));
+                    };
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
+        _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0001");
+    }
+
+    [Test]
     public async Task CodeFix_WhenCoalesceIsNestedInsideIfStatement_HoistsThrowIfNullAndKeepsAssignment()
     {
         const string source = """
