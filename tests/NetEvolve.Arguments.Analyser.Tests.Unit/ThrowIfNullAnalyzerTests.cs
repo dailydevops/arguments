@@ -195,6 +195,71 @@ public sealed class ThrowIfNullAnalyzerTests
         _ = await Assert.That(fixedSource).Contains("_value = argument;");
     }
 
+    [Test]
+    public async Task CodeFix_WhenAppliedToCoalesceInWhileEmbeddedStatement_WrapsInBlock()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                private string _value = string.Empty;
+
+                void M(string? argument, bool flag)
+                {
+                    while (flag)
+                        _value = argument ?? throw new ArgumentNullException(nameof(argument));
+                }
+            }
+            """;
+
+        var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
+            new ThrowIfNullAnalyzer(),
+            new ThrowIfNullCodeFixProvider(),
+            source
+        );
+
+        var normalized = fixedSource.Replace("\r\n", "\n", StringComparison.Ordinal);
+
+        _ = await Assert.That(normalized).Contains("ArgumentNullException.ThrowIfNull(argument);");
+        _ = await Assert.That(normalized).Contains("_value = argument;");
+        _ = await Assert.That(normalized).DoesNotContain("throw new ArgumentNullException");
+        _ = await Assert.That(normalized).Contains("while (flag)\n        {");
+    }
+
+    [Test]
+    public async Task CodeFix_WhenAppliedToCoalesceInLockEmbeddedStatement_WrapsInBlock()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                private string _value = string.Empty;
+                private readonly object _gate = new();
+
+                void M(string? argument)
+                {
+                    lock (_gate)
+                        _value = argument ?? throw new ArgumentNullException(nameof(argument));
+                }
+            }
+            """;
+
+        var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
+            new ThrowIfNullAnalyzer(),
+            new ThrowIfNullCodeFixProvider(),
+            source
+        );
+
+        var normalized = fixedSource.Replace("\r\n", "\n", StringComparison.Ordinal);
+
+        _ = await Assert.That(normalized).Contains("ArgumentNullException.ThrowIfNull(argument);");
+        _ = await Assert.That(normalized).Contains("_value = argument;");
+        _ = await Assert.That(normalized).DoesNotContain("throw new ArgumentNullException");
+        _ = await Assert.That(normalized).Contains("lock (_gate)\n        {");
+    }
+
     private static int CountOccurrences(string source, string value)
     {
         var count = 0;

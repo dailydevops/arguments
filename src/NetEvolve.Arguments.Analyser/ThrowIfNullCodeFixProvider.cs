@@ -139,12 +139,30 @@ public sealed class ThrowIfNullCodeFixProvider : CodeFixProvider
             .WithLeadingTrivia(containingStatement.GetLeadingTrivia())
             .WithAdditionalAnnotations(Formatter.Annotation);
 
-        editor.InsertBefore(containingStatement, throwIfNullStatement);
-        editor.ReplaceNode(coalesce, argument.WithoutTrivia());
-        editor.ReplaceNode(
-            containingStatement,
-            (currentNode, _) => currentNode.WithLeadingTrivia(SyntaxFactory.ElasticMarker)
-        );
+        if (containingStatement.Parent is BlockSyntax or SwitchSectionSyntax)
+        {
+            editor.InsertBefore(containingStatement, throwIfNullStatement);
+            editor.ReplaceNode(coalesce, argument.WithoutTrivia());
+            editor.ReplaceNode(
+                containingStatement,
+                (currentNode, _) => currentNode.WithLeadingTrivia(SyntaxFactory.ElasticMarker)
+            );
+        }
+        else
+        {
+            // The containing statement is an embedded statement (e.g. the body of a while/do/for/foreach/using/lock/fixed
+            // without braces). Its parent does not hold a statement list, so DocumentEditor.InsertBefore has nothing to
+            // insert into. Introduce a block instead, so the hoisted ThrowIfNull call has somewhere to live.
+            var rewrittenStatement = containingStatement.ReplaceNode(coalesce, argument.WithoutTrivia());
+
+            var block = SyntaxFactory
+                .Block(throwIfNullStatement.WithoutLeadingTrivia(), rewrittenStatement.WithoutLeadingTrivia())
+                .WithLeadingTrivia(containingStatement.GetLeadingTrivia())
+                .WithTrailingTrivia(containingStatement.GetTrailingTrivia())
+                .WithAdditionalAnnotations(Formatter.Annotation);
+
+            editor.ReplaceNode(containingStatement, block);
+        }
 
         var changedDocument = editor.GetChangedDocument();
         var changedRoot = await changedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
