@@ -66,10 +66,17 @@ public sealed class ThrowIfEmptyGuidCodeFixProvider : CodeFixProvider
     )
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         if (
             root is null
-            || !ThrowIfEmptyGuidAnalyzer.TryGetEmptyGuidCheckedExpression(ifStatement.Condition, out var argument)
+            || semanticModel is null
+            || !ThrowIfEmptyGuidAnalyzer.TryGetEmptyGuidCheckedExpression(
+                ifStatement.Condition,
+                semanticModel,
+                cancellationToken,
+                out var argument
+            )
             || argument is null
         )
         {

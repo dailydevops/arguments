@@ -61,6 +61,75 @@ public sealed class ThrowIfEmptyGuidAnalyzerTests
     }
 
     [Test]
+    public async Task Analyze_WhenArgumentIsNullableGuid_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(Guid? argument)
+                {
+                    if (argument == Guid.Empty) throw new ArgumentException(nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfEmptyGuidAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
+    public async Task Analyze_WhenArgumentIsObject_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(object argument)
+                {
+                    if (argument.Equals(Guid.Empty)) throw new ArgumentException(nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfEmptyGuidAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
+    public async Task Analyze_WhenGuidIsUserDefinedType_DoesNotReportDiagnostic()
+    {
+        const string source = """
+            using System;
+            using Guid = Other.Guid;
+
+            namespace Other
+            {
+                struct Guid
+                {
+                    public static readonly Guid Empty = new Guid();
+                }
+            }
+
+            class C
+            {
+                void M(Guid argument)
+                {
+                    if (argument.Equals(Guid.Empty)) throw new ArgumentException(nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfEmptyGuidAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).IsEmpty();
+    }
+
+    [Test]
     public async Task CodeFix_WhenApplied_ReplacesWithThrowIfEmptyGuidCall()
     {
         const string source = """
