@@ -54,6 +54,19 @@ public sealed class ThrowIfDisposedAnalyzer : DiagnosticAnalyzer
     {
         var ifStatement = (IfStatementSyntax)context.Node;
 
+        if (
+            !SyntaxHelpers.TryGetThrownException(
+                ifStatement,
+                context.SemanticModel,
+                ObjectDisposedExceptionMetadataName,
+                context.CancellationToken,
+                out _
+            )
+        )
+        {
+            return;
+        }
+
         var enclosingSymbol = context.SemanticModel.GetEnclosingSymbol(
             ifStatement.SpanStart,
             context.CancellationToken
@@ -83,19 +96,6 @@ public sealed class ThrowIfDisposedAnalyzer : DiagnosticAnalyzer
             }
 
             symbol = symbol.ContainingSymbol;
-        }
-
-        if (
-            !SyntaxHelpers.TryGetThrownException(
-                ifStatement,
-                context.SemanticModel,
-                ObjectDisposedExceptionMetadataName,
-                context.CancellationToken,
-                out _
-            )
-        )
-        {
-            return;
         }
 
         context.ReportDiagnostic(
