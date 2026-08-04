@@ -14,6 +14,15 @@ public sealed class ThrowIfNullOrEmptyAnalyzer : DiagnosticAnalyzer
     /// <summary>The fully-qualified metadata name of <see cref="ArgumentException"/>.</summary>
     private const string ArgumentExceptionMetadataName = "System.ArgumentException";
 
+    /// <summary>The fully-qualified metadata name of <see cref="ArgumentNullException"/>.</summary>
+    /// <remarks>
+    /// Also accepted as the thrown type: an <c>IsNullOrEmpty</c>/<c>IsNullOrWhiteSpace</c> check that throws
+    /// <see cref="ArgumentNullException"/> instead of <see cref="ArgumentException"/> is itself a bug for the
+    /// whitespace-only/empty-but-non-null case, and the same throw-helper fix corrects both the maintainability
+    /// concern and the wrong exception type.
+    /// </remarks>
+    private const string ArgumentNullExceptionMetadataName = "System.ArgumentNullException";
+
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
         ImmutableArray.Create(DiagnosticDescriptors.ThrowIfNullOrEmpty);
@@ -91,12 +100,21 @@ public sealed class ThrowIfNullOrEmptyAnalyzer : DiagnosticAnalyzer
         }
 
         if (
-            !SyntaxHelpers.TryGetThrownException(
-                ifStatement,
-                context.SemanticModel,
-                ArgumentExceptionMetadataName,
-                context.CancellationToken,
-                out var objectCreation
+            !(
+                SyntaxHelpers.TryGetThrownException(
+                    ifStatement,
+                    context.SemanticModel,
+                    ArgumentExceptionMetadataName,
+                    context.CancellationToken,
+                    out var objectCreation
+                )
+                || SyntaxHelpers.TryGetThrownException(
+                    ifStatement,
+                    context.SemanticModel,
+                    ArgumentNullExceptionMetadataName,
+                    context.CancellationToken,
+                    out objectCreation
+                )
             ) || objectCreation!.ArgumentList is null
         )
         {
