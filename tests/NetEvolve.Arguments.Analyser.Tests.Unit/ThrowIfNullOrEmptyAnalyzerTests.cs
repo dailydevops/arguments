@@ -93,8 +93,10 @@ public sealed class ThrowIfNullOrEmptyAnalyzerTests
     }
 
     [Test]
-    public async Task Analyze_WhenThrowingArgumentNullException_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenIsNullOrEmptyCheckThrowsArgumentNullException_ReportsDiagnostic()
     {
+        // Throwing ArgumentNullException for an IsNullOrEmpty/IsNullOrWhiteSpace check is itself a bug for the
+        // whitespace-only/empty-but-non-null case; the same throw-helper fix corrects the wrong exception type too.
         const string source = """
             using System;
 
@@ -109,7 +111,64 @@ public sealed class ThrowIfNullOrEmptyAnalyzerTests
 
         var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullOrEmptyAnalyzer(), source);
 
-        _ = await Assert.That(diagnostics).IsEmpty();
+        _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
+        _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0002");
+    }
+
+    [Test]
+    public async Task Analyze_WhenIsNullOrWhiteSpaceCheckThrowsArgumentNullException_ReportsDiagnostic()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(string? argument)
+                {
+                    if (string.IsNullOrWhiteSpace(argument)) throw new ArgumentNullException(nameof(argument));
+                }
+            }
+            """;
+
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullOrEmptyAnalyzer(), source);
+
+        _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task CodeFix_WhenAppliedToIsNullOrWhiteSpaceThrowingArgumentNullException_ReplacesWithThrowIfNullOrWhiteSpaceCall()
+    {
+        const string source = """
+            using System;
+
+            class C
+            {
+                void M(string? argument)
+                {
+                    if (string.IsNullOrWhiteSpace(argument)) throw new ArgumentNullException(nameof(argument));
+                }
+            }
+            """;
+
+        var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
+            new ThrowIfNullOrEmptyAnalyzer(),
+            new ThrowIfNullOrEmptyCodeFixProvider(),
+            source
+        );
+
+        const string expected = """
+            using System;
+
+            class C
+            {
+                void M(string? argument)
+                {
+                    ArgumentException.ThrowIfNullOrWhiteSpace(argument);
+                }
+            }
+            """;
+
+        _ = await Assert.That(fixedSource).IsEqualTo(expected);
     }
 
     [Test]

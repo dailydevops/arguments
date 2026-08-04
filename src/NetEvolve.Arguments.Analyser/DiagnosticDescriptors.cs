@@ -28,7 +28,7 @@ internal static class DiagnosticDescriptors
         category: "Maintainability",
         defaultSeverity: DiagnosticSeverity.Info,
         isEnabledByDefault: true,
-        description: "A string.IsNullOrEmpty/IsNullOrWhiteSpace check that throws ArgumentException can be replaced by the ArgumentException.ThrowIfNullOrEmpty/ThrowIfNullOrWhiteSpace throw-helper, which works on every target framework supported by NetEvolve.Arguments, including those that predate .NET 8.",
+        description: "A string.IsNullOrEmpty/IsNullOrWhiteSpace check that throws ArgumentException or ArgumentNullException can be replaced by the ArgumentException.ThrowIfNullOrEmpty/ThrowIfNullOrWhiteSpace throw-helper, which works on every target framework supported by NetEvolve.Arguments, including those that predate .NET 8.",
         helpLinkUri: $"{HelpLinkBase}/NEA0002.md"
     );
 
