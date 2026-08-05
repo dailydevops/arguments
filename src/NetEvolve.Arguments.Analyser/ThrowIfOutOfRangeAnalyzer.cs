@@ -76,8 +76,8 @@ public sealed class ThrowIfOutOfRangeAnalyzer : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.IfStatement);
     }
 
-    /// <summary>Analyzes an <c>if</c> statement and reports NEA0003 when it is a comparison-then-throw of <see cref="ArgumentOutOfRangeException"/>.</summary>
-    /// <param name="context">The syntax-node analysis context for the <c>if</c> statement being visited.</param>
+    /// <summary>Analyzes an <see langword="if"/> statement and reports NEA0003 when it is a comparison-then-throw of <see cref="ArgumentOutOfRangeException"/>.</summary>
+    /// <param name="context">The syntax-node analysis context for the <see langword="if"/> statement being visited.</param>
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
         var ifStatement = (IfStatementSyntax)context.Node;
@@ -228,7 +228,7 @@ public sealed class ThrowIfOutOfRangeAnalyzer : DiagnosticAnalyzer
     /// Recognizes a comparison against zero, another expression, or a combined range (<c>value &lt; min || value &gt; max</c>)
     /// and maps it to the matching <see cref="ArgumentOutOfRangeException"/> throw-helper member and arguments.
     /// </summary>
-    /// <param name="condition">The <c>if</c> statement's condition expression.</param>
+    /// <param name="condition">The <see langword="if"/> statement's condition expression.</param>
     /// <param name="comparison">When this method returns <see langword="true"/>, the recognized comparison; otherwise, <see langword="null"/>.</param>
     /// <returns><see langword="true"/> if <paramref name="condition"/> is a recognized comparison shape; otherwise, <see langword="false"/>.</returns>
     internal static bool TryGetComparison(ExpressionSyntax condition, out ComparisonResult? comparison)
@@ -319,7 +319,7 @@ public sealed class ThrowIfOutOfRangeAnalyzer : DiagnosticAnalyzer
     /// </summary>
     /// <remarks>
     /// This is a conservative, purely syntactic allow-list: a bare identifier (a parameter or local), or a chain of
-    /// member accesses rooted in one. Invocations, indexers, object creation, <c>await</c>, and assignment or
+    /// member accesses rooted in one. Invocations, indexers, object creation, <see langword="await"/>, and assignment or
     /// increment/decrement expressions are all rejected. Note that a member access is not strictly guaranteed to be
     /// side-effect-free either, since a property getter can run arbitrary code; however, rejecting all member access
     /// would gut the rule's main use case (e.g. <c>arg.Length</c>), so accepting member-access chains while
