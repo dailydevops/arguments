@@ -1,4 +1,4 @@
-namespace NetEvolve.Arguments.Analyser;
+﻿namespace NetEvolve.Arguments.Analyser;
 
 using System;
 using System.Collections.Immutable;
@@ -74,8 +74,8 @@ public sealed class ThrowIfNullOrEmptyAnalyzer : DiagnosticAnalyzer
         );
     }
 
-    /// <summary>Analyzes an <c>if</c> statement and reports NEA0002 when it is a <c>string.IsNullOrEmpty</c>/<c>IsNullOrWhiteSpace</c>-then-throw of <see cref="ArgumentException"/>.</summary>
-    /// <param name="context">The syntax-node analysis context for the <c>if</c> statement being visited.</param>
+    /// <summary>Analyzes an <see langword="if"/> statement and reports NEA0002 when it is a <c>string.IsNullOrEmpty</c>/<c>IsNullOrWhiteSpace</c>-then-throw of <see cref="ArgumentException"/>.</summary>
+    /// <param name="context">The syntax-node analysis context for the <see langword="if"/> statement being visited.</param>
     /// <param name="hasThrowIfNullOrEmpty">Whether the compilation's BCL already exposes <c>ArgumentException.ThrowIfNullOrEmpty</c>.</param>
     /// <param name="hasThrowIfNullOrWhiteSpace">Whether the compilation's BCL already exposes <c>ArgumentException.ThrowIfNullOrWhiteSpace</c>.</param>
     private static void Analyze(
@@ -142,7 +142,7 @@ public sealed class ThrowIfNullOrEmptyAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>Recognizes <c>string.IsNullOrEmpty(arg)</c>/<c>IsNullOrWhiteSpace(arg)</c> and reports the matching throw-helper member name and the checked argument.</summary>
-    /// <param name="condition">The <c>if</c> statement's condition expression.</param>
+    /// <param name="condition">The <see langword="if"/> statement's condition expression.</param>
     /// <param name="argument">When this method returns <see langword="true"/>, the string argument being checked; otherwise, <see langword="null"/>.</param>
     /// <param name="helperName">When this method returns <see langword="true"/>, the matching <see cref="ArgumentException"/> throw-helper member name; otherwise, <see langword="null"/>.</param>
     /// <returns><see langword="true"/> if <paramref name="condition"/> is a recognized shape; otherwise, <see langword="false"/>.</returns>
@@ -191,7 +191,7 @@ public sealed class ThrowIfNullOrEmptyAnalyzer : DiagnosticAnalyzer
         return true;
     }
 
-    /// <summary>Determines whether an expression refers to the <see cref="string"/> type, either via the <c>string</c> keyword or the <c>String</c> identifier.</summary>
+    /// <summary>Determines whether an expression refers to the <see cref="string"/> type, either via the <see cref="string"/> keyword or the <c>String</c> identifier.</summary>
     /// <param name="expression">The invocation target's qualifier expression to test.</param>
     /// <returns><see langword="true"/> if <paramref name="expression"/> refers to <see cref="string"/>; otherwise, <see langword="false"/>.</returns>
     private static bool IsStringTypeReference(ExpressionSyntax expression) =>

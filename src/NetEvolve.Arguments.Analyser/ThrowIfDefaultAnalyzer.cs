@@ -33,8 +33,8 @@ public sealed class ThrowIfDefaultAnalyzer : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.IfStatement);
     }
 
-    /// <summary>Analyzes an <c>if</c> statement and reports NEA0004 when it is a default-value-check-then-throw of <see cref="ArgumentException"/>.</summary>
-    /// <param name="context">The syntax-node analysis context for the <c>if</c> statement being visited.</param>
+    /// <summary>Analyzes an <see langword="if"/> statement and reports NEA0004 when it is a default-value-check-then-throw of <see cref="ArgumentException"/>.</summary>
+    /// <param name="context">The syntax-node analysis context for the <see langword="if"/> statement being visited.</param>
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
         var ifStatement = (IfStatementSyntax)context.Node;
@@ -111,7 +111,7 @@ public sealed class ThrowIfDefaultAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>Recognizes <c>arg.Equals(default)</c>/<c>arg.Equals(default(T))</c> and <c>arg == default</c>/<c>default == arg</c> (and the <c>default(T)</c> variants).</summary>
-    /// <param name="condition">The <c>if</c> statement's condition expression.</param>
+    /// <param name="condition">The <see langword="if"/> statement's condition expression.</param>
     /// <param name="argument">When this method returns <see langword="true"/>, the expression being checked; otherwise, <see langword="null"/>.</param>
     /// <returns><see langword="true"/> if <paramref name="condition"/> is a recognized default-value-check shape; otherwise, <see langword="false"/>.</returns>
     internal static bool TryGetDefaultCheckedExpression(ExpressionSyntax condition, out ExpressionSyntax? argument)

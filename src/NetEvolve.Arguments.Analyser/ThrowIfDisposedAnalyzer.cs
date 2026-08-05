@@ -46,10 +46,10 @@ public sealed class ThrowIfDisposedAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// Analyzes an <c>if</c> statement and reports NEA0005 when it is a disposed-check-then-throw of
-    /// <see cref="ObjectDisposedException"/> inside an instance member (the fix requires <c>this</c>).
+    /// Analyzes an <see langword="if"/> statement and reports NEA0005 when it is a disposed-check-then-throw of
+    /// <see cref="ObjectDisposedException"/> inside an instance member (the fix requires <see langword="this"/>).
     /// </summary>
-    /// <param name="context">The syntax-node analysis context for the <c>if</c> statement being visited.</param>
+    /// <param name="context">The syntax-node analysis context for the <see langword="if"/> statement being visited.</param>
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
         var ifStatement = (IfStatementSyntax)context.Node;

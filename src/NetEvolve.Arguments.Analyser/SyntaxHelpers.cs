@@ -1,4 +1,4 @@
-namespace NetEvolve.Arguments.Analyser;
+﻿namespace NetEvolve.Arguments.Analyser;
 
 using System;
 using System.Globalization;
@@ -39,8 +39,8 @@ internal static class SyntaxHelpers
         return expression;
     }
 
-    /// <summary>Gets the single <c>throw</c> statement a statement consists of, whether written directly or as the sole statement of a block.</summary>
-    /// <param name="statement">The statement to inspect, typically the body of an <c>if</c> statement.</param>
+    /// <summary>Gets the single <see langword="throw"/> statement a statement consists of, whether written directly or as the sole statement of a block.</summary>
+    /// <param name="statement">The statement to inspect, typically the body of an <see langword="if"/> statement.</param>
     /// <returns>The <see cref="ThrowStatementSyntax"/> if <paramref name="statement"/> is a throw statement, or a block containing exactly one; otherwise, <see langword="null"/>.</returns>
     public static ThrowStatementSyntax? GetSingleThrowStatement(StatementSyntax statement)
     {
@@ -62,7 +62,7 @@ internal static class SyntaxHelpers
 
     /// <summary>Determines whether an object-creation expression constructs exactly the given exception type.</summary>
     /// <param name="semanticModel">The semantic model used to resolve the created type.</param>
-    /// <param name="objectCreation">The <c>new</c> expression to inspect.</param>
+    /// <param name="objectCreation">The <see langword="new"/> expression to inspect.</param>
     /// <param name="fullyQualifiedMetadataName">The fully-qualified metadata name of the expected exception type, e.g. <c>System.ArgumentException</c>.</param>
     /// <param name="cancellationToken">The token used to cancel semantic-model lookups.</param>
     /// <returns><see langword="true"/> if <paramref name="objectCreation"/> constructs exactly the named type; otherwise, <see langword="false"/>.</returns>
@@ -80,15 +80,15 @@ internal static class SyntaxHelpers
     }
 
     /// <summary>
-    /// Recognizes the common shape every rule in this package requires of the <c>if</c> statement's body: no <c>else</c>
-    /// clause, a single <c>throw</c> statement, and an object-creation expression of exactly the given exception type.
+    /// Recognizes the common shape every rule in this package requires of the <see langword="if"/> statement's body: no <see langword="else"/>
+    /// clause, a single <see langword="throw"/> statement, and an object-creation expression of exactly the given exception type.
     /// </summary>
-    /// <param name="ifStatement">The <c>if</c> statement to inspect.</param>
+    /// <param name="ifStatement">The <see langword="if"/> statement to inspect.</param>
     /// <param name="semanticModel">The semantic model used to resolve the thrown exception's type.</param>
     /// <param name="exceptionMetadataName">The fully-qualified metadata name of the expected exception type.</param>
     /// <param name="cancellationToken">The token used to cancel semantic-model lookups.</param>
-    /// <param name="objectCreation">When this method returns <see langword="true"/>, the matched <c>new</c> expression; otherwise, <see langword="null"/>.</param>
-    /// <returns><see langword="true"/> if the <c>if</c> statement matches the shape; otherwise, <see langword="false"/>.</returns>
+    /// <param name="objectCreation">When this method returns <see langword="true"/>, the matched <see langword="new"/> expression; otherwise, <see langword="null"/>.</param>
+    /// <returns><see langword="true"/> if the <see langword="if"/> statement matches the shape; otherwise, <see langword="false"/>.</returns>
     public static bool TryGetThrownException(
         IfStatementSyntax ifStatement,
         SemanticModel semanticModel,
@@ -121,10 +121,10 @@ internal static class SyntaxHelpers
     }
 
     /// <summary>
-    /// Recognizes an <c>if</c> condition that is true precisely when an expression is <see langword="null"/> — covering
+    /// Recognizes an <see langword="if"/> condition that is true precisely when an expression is <see langword="null"/> — covering
     /// <c>is null</c>/<c>is not null</c>, <c>==</c>/<c>!=</c>, <c>ReferenceEquals</c>, and any number of enclosing <c>!</c> negations.
     /// </summary>
-    /// <param name="condition">The <c>if</c> statement's condition expression.</param>
+    /// <param name="condition">The <see langword="if"/> statement's condition expression.</param>
     /// <param name="argument">When this method returns <see langword="true"/>, the expression being null-checked; otherwise, <see langword="null"/>.</param>
     /// <returns><see langword="true"/> if <paramref name="condition"/> is a recognized "argument is null" shape; otherwise, <see langword="false"/>.</returns>
     public static bool TryGetNullCheckedExpression(ExpressionSyntax condition, out ExpressionSyntax? argument)
@@ -327,9 +327,9 @@ internal static class SyntaxHelpers
         return double.TryParse(text, NumberStyles.Any, CultureInfo.InvariantCulture, out var value) && value == 0;
     }
 
-    /// <summary>Determines whether an expression is the <c>default</c> literal or an explicitly-typed <c>default(T)</c> expression.</summary>
+    /// <summary>Determines whether an expression is the <see langword="default"/> literal or an explicitly-typed <c>default(T)</c> expression.</summary>
     /// <param name="expression">The expression to test.</param>
-    /// <returns><see langword="true"/> if <paramref name="expression"/> is <c>default</c> or <c>default(T)</c>; otherwise, <see langword="false"/>.</returns>
+    /// <returns><see langword="true"/> if <paramref name="expression"/> is <see langword="default"/> or <c>default(T)</c>; otherwise, <see langword="false"/>.</returns>
     public static bool IsDefaultLiteral(ExpressionSyntax expression) =>
         Unwrap(expression) switch
         {

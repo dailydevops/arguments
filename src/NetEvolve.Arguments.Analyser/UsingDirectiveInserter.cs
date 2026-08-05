@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 /// call binds to the polyfilled extension members in <c>NetEvolve.Arguments</c>, the extension block
 /// lives in namespace <c>System</c>, so the containing namespace must be imported for the call to
 /// resolve, even though the diagnostic itself can fire on a fully-qualified throw expression that
-/// required no such <c>using</c> directive.
+/// required no such <see langword="using"/> directive.
 /// </summary>
 internal static class UsingDirectiveInserter
 {
