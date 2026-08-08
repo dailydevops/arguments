@@ -54,9 +54,9 @@ public sealed class ThrowIfDisposedCodeFixProvider : CodeFixProvider
         );
     }
 
-    /// <summary>Rewrites the matched <c>if</c> statement into a single <c>ObjectDisposedException.ThrowIf(condition, this);</c> call.</summary>
+    /// <summary>Rewrites the matched <see langword="if"/> statement into a single <c>ObjectDisposedException.ThrowIf(condition, this);</c> call.</summary>
     /// <param name="document">The document containing the diagnostic.</param>
-    /// <param name="ifStatement">The <c>if</c> statement to replace.</param>
+    /// <param name="ifStatement">The <see langword="if"/> statement to replace.</param>
     /// <param name="cancellationToken">The token used to cancel the fix.</param>
     /// <returns>The updated document, or the original document if the syntax tree can no longer be retrieved.</returns>
     private static async Task<Document> ApplyFixAsync(

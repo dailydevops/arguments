@@ -123,8 +123,8 @@ public sealed class ThrowIfNullAnalyzer : DiagnosticAnalyzer
         return false;
     }
 
-    /// <summary>Analyzes an <c>if</c> statement and reports NEA0001 when it is a null-check-then-throw of <see cref="ArgumentNullException"/>.</summary>
-    /// <param name="context">The syntax-node analysis context for the <c>if</c> statement being visited.</param>
+    /// <summary>Analyzes an <see langword="if"/> statement and reports NEA0001 when it is a null-check-then-throw of <see cref="ArgumentNullException"/>.</summary>
+    /// <param name="context">The syntax-node analysis context for the <see langword="if"/> statement being visited.</param>
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
         var ifStatement = (IfStatementSyntax)context.Node;

@@ -39,8 +39,8 @@ public sealed class ThrowIfCountAnalyzer : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.IfStatement);
     }
 
-    /// <summary>Analyzes an <c>if</c> statement and reports NEA0007 when it is a collection-count-comparison-then-throw of <see cref="ArgumentException"/>.</summary>
-    /// <param name="context">The syntax-node analysis context for the <c>if</c> statement being visited.</param>
+    /// <summary>Analyzes an <see langword="if"/> statement and reports NEA0007 when it is a collection-count-comparison-then-throw of <see cref="ArgumentException"/>.</summary>
+    /// <param name="context">The syntax-node analysis context for the <see langword="if"/> statement being visited.</param>
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
         var ifStatement = (IfStatementSyntax)context.Node;
@@ -90,7 +90,7 @@ public sealed class ThrowIfCountAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>Recognizes <c>arg.Count &gt; max</c>, <c>arg.Count &lt; min</c>, and the combined range <c>arg.Count &lt; min || arg.Count &gt; max</c> (both the <c>.Count</c> property and the <c>.Count()</c> LINQ extension method).</summary>
-    /// <param name="condition">The <c>if</c> statement's condition expression.</param>
+    /// <param name="condition">The <see langword="if"/> statement's condition expression.</param>
     /// <param name="comparison">When this method returns <see langword="true"/>, the recognized comparison; otherwise, <see langword="null"/>.</param>
     /// <returns><see langword="true"/> if <paramref name="condition"/> is a recognized collection-count comparison shape; otherwise, <see langword="false"/>.</returns>
     internal static bool TryGetCountComparison(ExpressionSyntax condition, out ComparisonResult? comparison)
