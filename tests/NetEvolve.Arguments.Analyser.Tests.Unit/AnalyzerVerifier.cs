@@ -27,16 +27,18 @@ internal static class AnalyzerVerifier
     public static Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(
         DiagnosticAnalyzer analyzer,
         string source,
-        bool useLegacyReferences = true
-    ) => GetDiagnosticsCoreAsync(analyzer, source, useLegacyReferences);
+        bool useLegacyReferences = true,
+        CancellationToken cancellationToken = default
+    ) => GetDiagnosticsCoreAsync(analyzer, source, useLegacyReferences, cancellationToken: cancellationToken);
 
     public static Task<string> ApplyFixAsync(
         DiagnosticAnalyzer analyzer,
         CodeFixProvider codeFix,
         string source,
         bool useLegacyReferences = true,
-        int expectedDiagnosticCount = 1
-    ) => ApplyFixCoreAsync(analyzer, codeFix, source, useLegacyReferences, expectedDiagnosticCount);
+        int expectedDiagnosticCount = 1,
+        CancellationToken cancellationToken = default
+    ) => ApplyFixCoreAsync(analyzer, codeFix, source, useLegacyReferences, expectedDiagnosticCount, cancellationToken);
 
     /// <summary>
     /// Applies the code fix's <see cref="CodeFixProvider.GetFixAllProvider"/> (e.g. <c>WellKnownFixAllProviders.BatchFixer</c>)
@@ -46,19 +48,23 @@ internal static class AnalyzerVerifier
         DiagnosticAnalyzer analyzer,
         CodeFixProvider codeFix,
         string source,
-        bool useLegacyReferences = true
-    ) => ApplyFixAllCoreAsync(analyzer, codeFix, source, useLegacyReferences);
+        bool useLegacyReferences = true,
+        CancellationToken cancellationToken = default
+    ) => ApplyFixAllCoreAsync(analyzer, codeFix, source, useLegacyReferences, cancellationToken: cancellationToken);
 
     private static async Task<ImmutableArray<Diagnostic>> GetDiagnosticsCoreAsync(
         DiagnosticAnalyzer analyzer,
         string source,
-        bool useLegacyReferences
+        bool useLegacyReferences,
+        CancellationToken cancellationToken = default
     )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var compilation = CreateCompilation(source, useLegacyReferences);
         var compilationWithAnalyzers = compilation.WithAnalyzers(ImmutableArray.Create(analyzer));
 
-        return await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync(CancellationToken.None).ConfigureAwait(false);
+        return await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task<string> ApplyFixCoreAsync(
@@ -66,9 +72,12 @@ internal static class AnalyzerVerifier
         CodeFixProvider codeFix,
         string source,
         bool useLegacyReferences,
-        int expectedDiagnosticCount
+        int expectedDiagnosticCount,
+        CancellationToken cancellationToken = default
     )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         using var workspace = new AdhocWorkspace();
 
         var initialProject = workspace.AddProject("TestProject", LanguageNames.CSharp);
@@ -83,7 +92,8 @@ internal static class AnalyzerVerifier
 
         var document = workspace.AddDocument(configuredProject.Id, "Test.cs", SourceText.From(source));
 
-        var compilation = (CSharpCompilation)(await document.Project.GetCompilationAsync().ConfigureAwait(false))!;
+        var compilation = (CSharpCompilation)
+            (await document.Project.GetCompilationAsync(cancellationToken: cancellationToken).ConfigureAwait(false))!;
         var compilationWithAnalyzers = compilation.WithAnalyzers(ImmutableArray.Create(analyzer));
         var diagnostics = await compilationWithAnalyzers
             .GetAnalyzerDiagnosticsAsync(CancellationToken.None)
@@ -119,7 +129,7 @@ internal static class AnalyzerVerifier
         var operations = await registeredAction.GetOperationsAsync(CancellationToken.None).ConfigureAwait(false);
         var applyChanges = operations.OfType<ApplyChangesOperation>().Single();
         var newDocument = applyChanges.ChangedSolution.GetDocument(document.Id)!;
-        var newRoot = await newDocument.GetSyntaxRootAsync().ConfigureAwait(false);
+        var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
 
         return newRoot!.ToFullString();
     }
@@ -128,9 +138,12 @@ internal static class AnalyzerVerifier
         DiagnosticAnalyzer analyzer,
         CodeFixProvider codeFix,
         string source,
-        bool useLegacyReferences
+        bool useLegacyReferences,
+        CancellationToken cancellationToken = default
     )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         using var workspace = new AdhocWorkspace();
 
         var initialProject = workspace.AddProject("TestProject", LanguageNames.CSharp);
@@ -155,7 +168,8 @@ internal static class AnalyzerVerifier
             );
         }
 
-        var equivalenceKey = await GetEquivalenceKeyAsync(document, codeFix, diagnostics[0]).ConfigureAwait(false);
+        var equivalenceKey = await GetEquivalenceKeyAsync(document, codeFix, diagnostics[0], cancellationToken)
+            .ConfigureAwait(false);
 
         var fixAllProvider =
             codeFix.GetFixAllProvider()
@@ -178,7 +192,7 @@ internal static class AnalyzerVerifier
         var operations = await fixAllAction.GetOperationsAsync(CancellationToken.None).ConfigureAwait(false);
         var applyChanges = operations.OfType<ApplyChangesOperation>().Single();
         var newDocument = applyChanges.ChangedSolution.GetDocument(document.Id)!;
-        var newRoot = await newDocument.GetSyntaxRootAsync().ConfigureAwait(false);
+        var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
 
         return newRoot!.ToFullString();
     }
@@ -186,9 +200,12 @@ internal static class AnalyzerVerifier
     private static async Task<string?> GetEquivalenceKeyAsync(
         Document document,
         CodeFixProvider codeFix,
-        Diagnostic diagnostic
+        Diagnostic diagnostic,
+        CancellationToken cancellationToken = default
     )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         CodeAction? registeredAction = null;
         var fixContext = new CodeFixContext(
             document,
@@ -208,6 +225,8 @@ internal static class AnalyzerVerifier
         CancellationToken cancellationToken
     )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var compilation = (CSharpCompilation)
             (await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
         var compilationWithAnalyzers = compilation.WithAnalyzers(ImmutableArray.Create(analyzer));
@@ -224,6 +243,8 @@ internal static class AnalyzerVerifier
             CancellationToken cancellationToken
         )
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var diagnostics = ImmutableArray<Diagnostic>.Empty;
 
             foreach (var document in project.Documents)

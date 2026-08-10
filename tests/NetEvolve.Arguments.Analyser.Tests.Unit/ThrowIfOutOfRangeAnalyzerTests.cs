@@ -1,5 +1,7 @@
 ﻿namespace NetEvolve.Arguments.Analyser.Tests.Unit;
 
+using System.Threading;
+
 public sealed class ThrowIfOutOfRangeAnalyzerTests
 {
     [Test]
@@ -14,9 +16,12 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
     [Arguments("argument != 42", "ThrowIfNotEqual(argument, 42);")]
     public async Task Analyze_WhenComparisonThrowsArgumentOutOfRangeException_ReportsDiagnosticAndFixes(
         string condition,
-        string expectedInvocation
+        string expectedInvocation,
+        CancellationToken cancellationToken = default
     )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var source = $$"""
             using System;
 
@@ -29,7 +34,11 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfOutOfRangeAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
         _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0003");
@@ -37,7 +46,8 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
         var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
             new ThrowIfOutOfRangeAnalyzer(),
             new ThrowIfOutOfRangeCodeFixProvider(),
-            source
+            source,
+            cancellationToken: cancellationToken
         );
 
         var expected = $$"""
@@ -56,8 +66,12 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
     }
 
     [Test]
-    public async Task Analyze_WhenBoundIsNotALiteral_ReportsDiagnosticAndFixes()
+    public async Task Analyze_WhenBoundIsNotALiteral_ReportsDiagnosticAndFixes(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -70,14 +84,19 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfOutOfRangeAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
 
         var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
             new ThrowIfOutOfRangeAnalyzer(),
             new ThrowIfOutOfRangeCodeFixProvider(),
-            source
+            source,
+            cancellationToken: cancellationToken
         );
 
         const string expected = """
@@ -96,8 +115,12 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
     }
 
     [Test]
-    public async Task Analyze_WhenValueOperandIsLiteral_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenValueOperandIsLiteral_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -110,14 +133,22 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfOutOfRangeAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenThrowingArgumentException_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenThrowingArgumentException_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -130,14 +161,22 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfOutOfRangeAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenBuiltInThrowIfNegativeAvailable_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenBuiltInThrowIfNegativeAvailable_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -153,15 +192,20 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
         var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
             new ThrowIfOutOfRangeAnalyzer(),
             source,
-            useLegacyReferences: false
+            useLegacyReferences: false,
+            cancellationToken: cancellationToken
         );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenCombinedRangeThrowsArgumentOutOfRangeException_ReportsDiagnosticAndFixes()
+    public async Task Analyze_WhenCombinedRangeThrowsArgumentOutOfRangeException_ReportsDiagnosticAndFixes(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -174,7 +218,11 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfOutOfRangeAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
         _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0003");
@@ -182,7 +230,8 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
         var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
             new ThrowIfOutOfRangeAnalyzer(),
             new ThrowIfOutOfRangeCodeFixProvider(),
-            source
+            source,
+            cancellationToken: cancellationToken
         );
 
         const string expected = """
@@ -201,8 +250,12 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
     }
 
     [Test]
-    public async Task Analyze_WhenCombinedRangeOperandIsDouble_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenCombinedRangeOperandIsDouble_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -215,7 +268,11 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfOutOfRangeAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
@@ -225,8 +282,13 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
     [Arguments("argument <= 42")]
     [Arguments("argument > 42")]
     [Arguments("argument >= 42")]
-    public async Task Analyze_WhenRelationalOperandIsFloat_DoesNotReportDiagnostic(string condition)
+    public async Task Analyze_WhenRelationalOperandIsFloat_DoesNotReportDiagnostic(
+        string condition,
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var source = $$"""
             using System;
 
@@ -239,14 +301,22 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfOutOfRangeAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenEqualityOperandIsDouble_ReportsDiagnostic()
+    public async Task Analyze_WhenEqualityOperandIsDouble_ReportsDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -259,15 +329,21 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfOutOfRangeAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
         _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0003");
     }
 
     [Test]
-    public async Task Analyze_WhenIfHasElseClause_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenIfHasElseClause_DoesNotReportDiagnostic(CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -286,14 +362,22 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfOutOfRangeAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenExceptionHasTooManyArguments_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenExceptionHasTooManyArguments_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -306,14 +390,22 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfOutOfRangeAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenCombinedRangeOperandIsInvocation_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenCombinedRangeOperandIsInvocation_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -328,14 +420,21 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfOutOfRangeAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenCombinedRangeMemberAccessOperandNamesRootParameter_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenCombinedRangeMemberAccessOperandNamesRootParameter_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
         // The compared operand is the member-access chain "argument.Length", but the constructor here names
         // only the root parameter ("argument"). Rewriting to the throw-helper would capture the whole chain
         // via [CallerArgumentExpression] and change the reported ParamName from "argument" to "argument.Length",
@@ -352,14 +451,22 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfOutOfRangeAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenParamNameArgumentDoesNotMatchComparedValue_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenParamNameArgumentDoesNotMatchComparedValue_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -372,14 +479,22 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfOutOfRangeAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenExceptionArgumentIsUnrelatedToComparedValue_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenExceptionArgumentIsUnrelatedToComparedValue_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -392,14 +507,22 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfOutOfRangeAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenCombinedRangeOperandIsElementAccess_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenCombinedRangeOperandIsElementAccess_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -412,14 +535,22 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfOutOfRangeAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenExceptionHasActualValueAndMessage_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenExceptionHasActualValueAndMessage_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -432,14 +563,22 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfOutOfRangeAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenCombinedRangeOperandIsMemberAccess_ReportsDiagnosticAndFixes()
+    public async Task Analyze_WhenCombinedRangeOperandIsMemberAccess_ReportsDiagnosticAndFixes(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -452,7 +591,11 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfOutOfRangeAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
         _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0003");
@@ -460,7 +603,8 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
         var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
             new ThrowIfOutOfRangeAnalyzer(),
             new ThrowIfOutOfRangeCodeFixProvider(),
-            source
+            source,
+            cancellationToken: cancellationToken
         );
 
         _ = await Assert
@@ -469,8 +613,12 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
     }
 
     [Test]
-    public async Task Analyze_WhenExceptionHasNoArguments_ReportsDiagnostic()
+    public async Task Analyze_WhenExceptionHasNoArguments_ReportsDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -483,7 +631,11 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfOutOfRangeAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
     }
@@ -495,9 +647,12 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
     [Arguments("int argument", "argument == 5 || argument > 100")]
     public async Task Analyze_WhenConditionIsUnrecognizedShape_DoesNotReportDiagnostic(
         string parameters,
-        string condition
+        string condition,
+        CancellationToken cancellationToken = default
     )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var source = $$"""
             using System;
 
@@ -510,14 +665,22 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfOutOfRangeAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenOperandIsEnumComparedForEquality_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenOperandIsEnumComparedForEquality_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -535,14 +698,20 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfOutOfRangeAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenOperandIsObject_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenOperandIsObject_DoesNotReportDiagnostic(CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -555,14 +724,22 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfOutOfRangeAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenOperandTypeImplementsNeitherEquatableNorComparable_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenOperandTypeImplementsNeitherEquatableNorComparable_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -579,14 +756,22 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfOutOfRangeAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenOperandTypeIsUnresolvedErrorType_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenOperandTypeIsUnresolvedErrorType_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -599,7 +784,11 @@ public sealed class ThrowIfOutOfRangeAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfOutOfRangeAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfOutOfRangeAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }

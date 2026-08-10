@@ -1,12 +1,17 @@
 namespace NetEvolve.Arguments.Analyser.Tests.Unit;
 
 using System;
+using System.Threading;
 
 public sealed class ThrowIfNullAnalyzerTests
 {
     [Test]
-    public async Task Analyze_WhenIsNullCheckThrowsArgumentNullException_ReportsDiagnostic()
+    public async Task Analyze_WhenIsNullCheckThrowsArgumentNullException_ReportsDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -19,7 +24,11 @@ public sealed class ThrowIfNullAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
         _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0001");
@@ -36,8 +45,13 @@ public sealed class ThrowIfNullAnalyzerTests
     [Arguments("!(null != argument)")]
     [Arguments("object.ReferenceEquals(argument, null)")]
     [Arguments("(argument is null)")]
-    public async Task Analyze_WhenUsingRecognizedNullCheckVariant_ReportsDiagnostic(string condition)
+    public async Task Analyze_WhenUsingRecognizedNullCheckVariant_ReportsDiagnostic(
+        string condition,
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var source = $$"""
             using System;
 
@@ -50,7 +64,11 @@ public sealed class ThrowIfNullAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
     }
@@ -60,8 +78,13 @@ public sealed class ThrowIfNullAnalyzerTests
     [Arguments("!(argument is null)")]
     [Arguments("argument != null")]
     [Arguments("null != argument")]
-    public async Task Analyze_WhenConditionMeansNonNull_DoesNotReportDiagnostic(string condition)
+    public async Task Analyze_WhenConditionMeansNonNull_DoesNotReportDiagnostic(
+        string condition,
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var source = $$"""
             using System;
 
@@ -74,14 +97,22 @@ public sealed class ThrowIfNullAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenCoalesceThrowsArgumentNullException_ReportsDiagnostic()
+    public async Task Analyze_WhenCoalesceThrowsArgumentNullException_ReportsDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -96,15 +127,23 @@ public sealed class ThrowIfNullAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
         _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0001");
     }
 
     [Test]
-    public async Task CodeFix_WhenAppliedToCoalesce_HoistsThrowIfNullAndKeepsAssignment()
+    public async Task CodeFix_WhenAppliedToCoalesce_HoistsThrowIfNullAndKeepsAssignment(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -122,7 +161,8 @@ public sealed class ThrowIfNullAnalyzerTests
         var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
             new ThrowIfNullAnalyzer(),
             new ThrowIfNullCodeFixProvider(),
-            source
+            source,
+            cancellationToken: cancellationToken
         );
 
         _ = await Assert.That(fixedSource).Contains("ArgumentNullException.ThrowIfNull(argument);");
@@ -131,8 +171,12 @@ public sealed class ThrowIfNullAnalyzerTests
     }
 
     [Test]
-    public async Task CodeFix_WhenAppliedToCoalesceWithRegionTrivia_DoesNotDuplicateLeadingTrivia()
+    public async Task CodeFix_WhenAppliedToCoalesceWithRegionTrivia_DoesNotDuplicateLeadingTrivia(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -152,7 +196,8 @@ public sealed class ThrowIfNullAnalyzerTests
         var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
             new ThrowIfNullAnalyzer(),
             new ThrowIfNullCodeFixProvider(),
-            source
+            source,
+            cancellationToken: cancellationToken
         );
 
         var regionOccurrences = CountOccurrences(fixedSource, "#region Guards");
@@ -165,8 +210,12 @@ public sealed class ThrowIfNullAnalyzerTests
     }
 
     [Test]
-    public async Task CodeFix_WhenAppliedToCoalesceWithLeadingComment_DoesNotDuplicateComment()
+    public async Task CodeFix_WhenAppliedToCoalesceWithLeadingComment_DoesNotDuplicateComment(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -185,7 +234,8 @@ public sealed class ThrowIfNullAnalyzerTests
         var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
             new ThrowIfNullAnalyzer(),
             new ThrowIfNullCodeFixProvider(),
-            source
+            source,
+            cancellationToken: cancellationToken
         );
 
         var commentOccurrences = CountOccurrences(fixedSource, "// validate input");
@@ -196,8 +246,12 @@ public sealed class ThrowIfNullAnalyzerTests
     }
 
     [Test]
-    public async Task CodeFix_WhenAppliedToCoalesceInWhileEmbeddedStatement_WrapsInBlock()
+    public async Task CodeFix_WhenAppliedToCoalesceInWhileEmbeddedStatement_WrapsInBlock(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -216,7 +270,8 @@ public sealed class ThrowIfNullAnalyzerTests
         var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
             new ThrowIfNullAnalyzer(),
             new ThrowIfNullCodeFixProvider(),
-            source
+            source,
+            cancellationToken: cancellationToken
         );
 
         var normalized = fixedSource.Replace("\r\n", "\n", StringComparison.Ordinal);
@@ -228,8 +283,12 @@ public sealed class ThrowIfNullAnalyzerTests
     }
 
     [Test]
-    public async Task CodeFix_WhenAppliedToCoalesceInWhileEmbeddedStatementWithLeadingComment_DoesNotDuplicateComment()
+    public async Task CodeFix_WhenAppliedToCoalesceInWhileEmbeddedStatementWithLeadingComment_DoesNotDuplicateComment(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -249,7 +308,8 @@ public sealed class ThrowIfNullAnalyzerTests
         var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
             new ThrowIfNullAnalyzer(),
             new ThrowIfNullCodeFixProvider(),
-            source
+            source,
+            cancellationToken: cancellationToken
         );
 
         var commentOccurrences = CountOccurrences(fixedSource, "// validate input");
@@ -261,8 +321,12 @@ public sealed class ThrowIfNullAnalyzerTests
     }
 
     [Test]
-    public async Task CodeFix_WhenAppliedToCoalesceInLockEmbeddedStatement_WrapsInBlock()
+    public async Task CodeFix_WhenAppliedToCoalesceInLockEmbeddedStatement_WrapsInBlock(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -282,7 +346,8 @@ public sealed class ThrowIfNullAnalyzerTests
         var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
             new ThrowIfNullAnalyzer(),
             new ThrowIfNullCodeFixProvider(),
-            source
+            source,
+            cancellationToken: cancellationToken
         );
 
         var normalized = fixedSource.Replace("\r\n", "\n", StringComparison.Ordinal);
@@ -308,8 +373,12 @@ public sealed class ThrowIfNullAnalyzerTests
     }
 
     [Test]
-    public async Task Analyze_WhenBuiltInThrowIfNullAvailable_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenBuiltInThrowIfNullAvailable_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -325,15 +394,20 @@ public sealed class ThrowIfNullAnalyzerTests
         var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
             new ThrowIfNullAnalyzer(),
             source,
-            useLegacyReferences: false
+            useLegacyReferences: false,
+            cancellationToken: cancellationToken
         );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenExceptionHasNoArguments_ReportsDiagnostic()
+    public async Task Analyze_WhenExceptionHasNoArguments_ReportsDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -346,14 +420,22 @@ public sealed class ThrowIfNullAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
     }
 
     [Test]
-    public async Task Analyze_WhenParamNameDoesNotMatchCheckedArgument_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenParamNameDoesNotMatchCheckedArgument_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -366,7 +448,11 @@ public sealed class ThrowIfNullAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
@@ -374,8 +460,13 @@ public sealed class ThrowIfNullAnalyzerTests
     [Test]
     [Arguments("_value = argument ?? throw new ArgumentException(nameof(argument));")]
     [Arguments("_value = argument ?? throw new ArgumentNullException(nameof(argument), \"custom\");")]
-    public async Task Analyze_WhenCoalesceThrowIsNotRecognized_DoesNotReportDiagnostic(string statement)
+    public async Task Analyze_WhenCoalesceThrowIsNotRecognized_DoesNotReportDiagnostic(
+        string statement,
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var source = $$"""
             using System;
 
@@ -390,14 +481,22 @@ public sealed class ThrowIfNullAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenExceptionHasCustomMessage_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenExceptionHasCustomMessage_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -410,14 +509,20 @@ public sealed class ThrowIfNullAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenIfHasElseClause_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenIfHasElseClause_DoesNotReportDiagnostic(CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -436,14 +541,22 @@ public sealed class ThrowIfNullAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenCoalesceInSimpleLambdaParameterExpression_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenCoalesceInSimpleLambdaParameterExpression_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -456,14 +569,22 @@ public sealed class ThrowIfNullAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenCoalesceInParenthesizedLambdaCapturingOuterVariable_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenCoalesceInParenthesizedLambdaCapturingOuterVariable_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -476,14 +597,22 @@ public sealed class ThrowIfNullAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenCoalesceInsideConditionalExpressionBranch_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenCoalesceInsideConditionalExpressionBranch_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -496,14 +625,22 @@ public sealed class ThrowIfNullAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenCoalesceInStatementBodiedLambda_ReportsDiagnostic()
+    public async Task Analyze_WhenCoalesceInStatementBodiedLambda_ReportsDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -519,15 +656,23 @@ public sealed class ThrowIfNullAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
         _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0001");
     }
 
     [Test]
-    public async Task Analyze_WhenCoalesceInAnonymousMethodStatement_ReportsDiagnostic()
+    public async Task Analyze_WhenCoalesceInAnonymousMethodStatement_ReportsDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -543,15 +688,23 @@ public sealed class ThrowIfNullAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
         _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0001");
     }
 
     [Test]
-    public async Task Analyze_WhenCoalesceInExpressionBodiedProperty_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenCoalesceInExpressionBodiedProperty_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -563,14 +716,22 @@ public sealed class ThrowIfNullAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenCoalesceInConditionalExpressionWhenFalseBranch_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenCoalesceInConditionalExpressionWhenFalseBranch_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -583,14 +744,22 @@ public sealed class ThrowIfNullAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenCoalesceIsConditionOfTernary_ReportsDiagnostic()
+    public async Task Analyze_WhenCoalesceIsConditionOfTernary_ReportsDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -603,15 +772,23 @@ public sealed class ThrowIfNullAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
         _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0001");
     }
 
     [Test]
-    public async Task Analyze_WhenCoalesceIsRightOperandOfEnclosingCoalesce_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenCoalesceIsRightOperandOfEnclosingCoalesce_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -624,14 +801,22 @@ public sealed class ThrowIfNullAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenCoalesceIsRightOperandOfLogicalAnd_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenCoalesceIsRightOperandOfLogicalAnd_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -644,14 +829,22 @@ public sealed class ThrowIfNullAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenCoalesceIsRightOperandOfLogicalOr_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenCoalesceIsRightOperandOfLogicalOr_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -664,14 +857,22 @@ public sealed class ThrowIfNullAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenCoalesceIsLeftOperandOfLogicalAnd_ReportsDiagnostic()
+    public async Task Analyze_WhenCoalesceIsLeftOperandOfLogicalAnd_ReportsDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -684,15 +885,23 @@ public sealed class ThrowIfNullAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
         _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0001");
     }
 
     [Test]
-    public async Task Analyze_WhenCoalesceIsLeftOperandOfLogicalOr_ReportsDiagnostic()
+    public async Task Analyze_WhenCoalesceIsLeftOperandOfLogicalOr_ReportsDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -705,15 +914,23 @@ public sealed class ThrowIfNullAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
         _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0001");
     }
 
     [Test]
-    public async Task Analyze_WhenCoalesceIsLeftOperandOfEnclosingCoalesce_ReportsDiagnostic()
+    public async Task Analyze_WhenCoalesceIsLeftOperandOfEnclosingCoalesce_ReportsDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -726,15 +943,23 @@ public sealed class ThrowIfNullAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
         _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0001");
     }
 
     [Test]
-    public async Task CodeFix_WhenCoalesceIsNestedInsideIfStatement_HoistsThrowIfNullAndKeepsAssignment()
+    public async Task CodeFix_WhenCoalesceIsNestedInsideIfStatement_HoistsThrowIfNullAndKeepsAssignment(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -753,7 +978,8 @@ public sealed class ThrowIfNullAnalyzerTests
         var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
             new ThrowIfNullAnalyzer(),
             new ThrowIfNullCodeFixProvider(),
-            source
+            source,
+            cancellationToken: cancellationToken
         );
 
         _ = await Assert.That(fixedSource).Contains("ArgumentNullException.ThrowIfNull(source);");
@@ -762,8 +988,12 @@ public sealed class ThrowIfNullAnalyzerTests
     }
 
     [Test]
-    public async Task CodeFix_WhenCoalesceIsNestedInsideUnrelatedIfStatement_StillAppliesCoalesceFix()
+    public async Task CodeFix_WhenCoalesceIsNestedInsideUnrelatedIfStatement_StillAppliesCoalesceFix(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -782,7 +1012,8 @@ public sealed class ThrowIfNullAnalyzerTests
         var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
             new ThrowIfNullAnalyzer(),
             new ThrowIfNullCodeFixProvider(),
-            source
+            source,
+            cancellationToken: cancellationToken
         );
 
         _ = await Assert.That(fixedSource).Contains("ArgumentNullException.ThrowIfNull(source);");
@@ -791,8 +1022,10 @@ public sealed class ThrowIfNullAnalyzerTests
     }
 
     [Test]
-    public async Task CodeFix_WhenApplied_ReplacesWithThrowIfNullCall()
+    public async Task CodeFix_WhenApplied_ReplacesWithThrowIfNullCall(CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -808,7 +1041,8 @@ public sealed class ThrowIfNullAnalyzerTests
         var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
             new ThrowIfNullAnalyzer(),
             new ThrowIfNullCodeFixProvider(),
-            source
+            source,
+            cancellationToken: cancellationToken
         );
 
         _ = await Assert.That(fixedSource).Contains("ArgumentNullException.ThrowIfNull(argument);");
@@ -816,8 +1050,12 @@ public sealed class ThrowIfNullAnalyzerTests
     }
 
     [Test]
-    public async Task CodeFix_WhenSourceHasNoUsingSystemAndThrowIsFullyQualified_AddsUsingSystemDirective()
+    public async Task CodeFix_WhenSourceHasNoUsingSystemAndThrowIsFullyQualified_AddsUsingSystemDirective(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             class C
             {
@@ -831,7 +1069,8 @@ public sealed class ThrowIfNullAnalyzerTests
         var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
             new ThrowIfNullAnalyzer(),
             new ThrowIfNullCodeFixProvider(),
-            source
+            source,
+            cancellationToken: cancellationToken
         );
 
         _ = await Assert.That(fixedSource).Contains("using System;");
@@ -840,8 +1079,12 @@ public sealed class ThrowIfNullAnalyzerTests
     }
 
     [Test]
-    public async Task CodeFix_WhenFileScopedNamespaceHasNoUsingSystem_AddsUsingSystemDirective()
+    public async Task CodeFix_WhenFileScopedNamespaceHasNoUsingSystem_AddsUsingSystemDirective(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             namespace Test;
 
@@ -857,7 +1100,8 @@ public sealed class ThrowIfNullAnalyzerTests
         var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
             new ThrowIfNullAnalyzer(),
             new ThrowIfNullCodeFixProvider(),
-            source
+            source,
+            cancellationToken: cancellationToken
         );
 
         _ = await Assert.That(fixedSource).Contains("using System;");
@@ -866,8 +1110,12 @@ public sealed class ThrowIfNullAnalyzerTests
     }
 
     [Test]
-    public async Task CodeFix_WhenFileScopedNamespaceAlreadyHasUsingSystem_DoesNotDuplicateDirective()
+    public async Task CodeFix_WhenFileScopedNamespaceAlreadyHasUsingSystem_DoesNotDuplicateDirective(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             namespace Test;
 
@@ -885,7 +1133,8 @@ public sealed class ThrowIfNullAnalyzerTests
         var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
             new ThrowIfNullAnalyzer(),
             new ThrowIfNullCodeFixProvider(),
-            source
+            source,
+            cancellationToken: cancellationToken
         );
 
         _ = await Assert.That(fixedSource).Contains("ArgumentNullException.ThrowIfNull(argument);");
@@ -893,8 +1142,12 @@ public sealed class ThrowIfNullAnalyzerTests
     }
 
     [Test]
-    public async Task CodeFix_WhenBlockScopedNamespaceHasNoUsingSystem_AddsUsingSystemDirective()
+    public async Task CodeFix_WhenBlockScopedNamespaceHasNoUsingSystem_AddsUsingSystemDirective(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             namespace Test
             {
@@ -911,7 +1164,8 @@ public sealed class ThrowIfNullAnalyzerTests
         var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
             new ThrowIfNullAnalyzer(),
             new ThrowIfNullCodeFixProvider(),
-            source
+            source,
+            cancellationToken: cancellationToken
         );
 
         _ = await Assert.That(fixedSource).Contains("using System;");
@@ -920,8 +1174,12 @@ public sealed class ThrowIfNullAnalyzerTests
     }
 
     [Test]
-    public async Task CodeFix_WhenBlockScopedNamespaceAlreadyHasUsingSystem_DoesNotDuplicateDirective()
+    public async Task CodeFix_WhenBlockScopedNamespaceAlreadyHasUsingSystem_DoesNotDuplicateDirective(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             namespace Test
             {
@@ -940,7 +1198,8 @@ public sealed class ThrowIfNullAnalyzerTests
         var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
             new ThrowIfNullAnalyzer(),
             new ThrowIfNullCodeFixProvider(),
-            source
+            source,
+            cancellationToken: cancellationToken
         );
 
         _ = await Assert.That(fixedSource).Contains("ArgumentNullException.ThrowIfNull(argument);");
@@ -948,8 +1207,12 @@ public sealed class ThrowIfNullAnalyzerTests
     }
 
     [Test]
-    public async Task CodeFix_WhenSourceHasOnlyAliasedSystemUsing_AddsRealUsingSystemDirective()
+    public async Task CodeFix_WhenSourceHasOnlyAliasedSystemUsing_AddsRealUsingSystemDirective(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using SysArg = System;
 
@@ -965,7 +1228,8 @@ public sealed class ThrowIfNullAnalyzerTests
         var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
             new ThrowIfNullAnalyzer(),
             new ThrowIfNullCodeFixProvider(),
-            source
+            source,
+            cancellationToken: cancellationToken
         );
 
         _ = await Assert.That(fixedSource).Contains("using SysArg = System;");
@@ -974,8 +1238,12 @@ public sealed class ThrowIfNullAnalyzerTests
     }
 
     [Test]
-    public async Task CodeFix_WhenFixAllAppliedAcrossTwoMatchedSites_ReplacesBothWithThrowIfNullCalls()
+    public async Task CodeFix_WhenFixAllAppliedAcrossTwoMatchedSites_ReplacesBothWithThrowIfNullCalls(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -989,14 +1257,19 @@ public sealed class ThrowIfNullAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(2);
 
         var fixedSource = await AnalyzerVerifier.ApplyFixAllAsync(
             new ThrowIfNullAnalyzer(),
             new ThrowIfNullCodeFixProvider(),
-            source
+            source,
+            cancellationToken: cancellationToken
         );
 
         const string expected = """

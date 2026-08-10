@@ -1,9 +1,9 @@
-#if !NET7_0_OR_GREATER
+﻿#if !NET7_0_OR_GREATER
 
-#pragma warning disable IDE0130 // Namespace does not match folder structure
+#pragma warning disable IDE0130, NE0002 // Namespace does not match folder structure
 namespace System;
 
-#pragma warning restore IDE0130 // Namespace does not match folder structure
+#pragma warning restore IDE0130, NE0002 // Namespace does not match folder structure
 
 using System.Diagnostics.CodeAnalysis;
 

@@ -1,6 +1,7 @@
 namespace NetEvolve.Arguments.Analyser.Tests.Unit;
 
 using System;
+using System.Threading;
 
 public sealed class ThrowIfDefaultAnalyzerTests
 {
@@ -10,8 +11,13 @@ public sealed class ThrowIfDefaultAnalyzerTests
     [Arguments("default == argument")]
     [Arguments("argument.Equals(default(Guid))")]
     [Arguments("argument == default(Guid)")]
-    public async Task Analyze_WhenDefaultCheckThrowsArgumentException_ReportsDiagnostic(string condition)
+    public async Task Analyze_WhenDefaultCheckThrowsArgumentException_ReportsDiagnostic(
+        string condition,
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var source = $$"""
             using System;
 
@@ -24,7 +30,11 @@ public sealed class ThrowIfDefaultAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfDefaultAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfDefaultAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
         _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0004");
@@ -45,8 +55,13 @@ public sealed class ThrowIfDefaultAnalyzerTests
             }
             """
     )]
-    public async Task Analyze_WhenConditionOrExceptionIsNotRecognized_DoesNotReportDiagnostic(string statement)
+    public async Task Analyze_WhenConditionOrExceptionIsNotRecognized_DoesNotReportDiagnostic(
+        string statement,
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var source = $$"""
             using System;
 
@@ -59,14 +74,22 @@ public sealed class ThrowIfDefaultAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfDefaultAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfDefaultAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenArgumentTypeIsReferenceType_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenArgumentTypeIsReferenceType_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -79,14 +102,22 @@ public sealed class ThrowIfDefaultAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfDefaultAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfDefaultAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenArgumentTypeIsNullableValueType_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenArgumentTypeIsNullableValueType_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -99,14 +130,22 @@ public sealed class ThrowIfDefaultAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfDefaultAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfDefaultAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenArgumentTypeIsStructWithoutIEquatable_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenArgumentTypeIsStructWithoutIEquatable_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -123,14 +162,22 @@ public sealed class ThrowIfDefaultAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfDefaultAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfDefaultAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenParamNameIsStringLiteral_ReportsDiagnostic()
+    public async Task Analyze_WhenParamNameIsStringLiteral_ReportsDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -143,14 +190,20 @@ public sealed class ThrowIfDefaultAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfDefaultAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfDefaultAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
     }
 
     [Test]
-    public async Task CodeFix_WhenApplied_ReplacesWithThrowIfDefaultCall()
+    public async Task CodeFix_WhenApplied_ReplacesWithThrowIfDefaultCall(CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -166,7 +219,8 @@ public sealed class ThrowIfDefaultAnalyzerTests
         var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
             new ThrowIfDefaultAnalyzer(),
             new ThrowIfDefaultCodeFixProvider(),
-            source
+            source,
+            cancellationToken: cancellationToken
         );
 
         const string expected = """
@@ -185,8 +239,12 @@ public sealed class ThrowIfDefaultAnalyzerTests
     }
 
     [Test]
-    public async Task CodeFix_WhenBlockContainsInteriorComment_PreservesCommentExactlyOnce()
+    public async Task CodeFix_WhenBlockContainsInteriorComment_PreservesCommentExactlyOnce(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -207,7 +265,8 @@ public sealed class ThrowIfDefaultAnalyzerTests
         var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
             new ThrowIfDefaultAnalyzer(),
             new ThrowIfDefaultCodeFixProvider(),
-            source
+            source,
+            cancellationToken: cancellationToken
         );
 
         _ = await Assert.That(fixedSource).Contains("ArgumentException.ThrowIfDefault(argument);");

@@ -2,8 +2,14 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
+[SuppressMessage(
+    "Maintainability",
+    "NE0001:Declare one type per file with a matching file name",
+    Justification = "Obsolete"
+)]
 public static partial class Argument
 {
     /// <summary>Throws an <see cref="ArgumentOutOfRangeException"/> if <paramref name="value"/> is less than <paramref name="other"/>.</summary>

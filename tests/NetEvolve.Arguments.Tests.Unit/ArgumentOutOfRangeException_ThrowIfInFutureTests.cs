@@ -9,7 +9,7 @@ public sealed class ArgumentOutOfRangeException_ThrowIfInFutureTests
     public void ThrowIfInFuture_DateTimeOffset_WhenValueIsInFuture_ThrowsArgumentOutOfRangeException()
     {
         // Arrange
-        var argument = DateTimeOffset.UtcNow.AddHours(1);
+        var argument = DateTimeOffset.UtcNow.AddHours(1D);
 
         // Act
         void Act() => ArgumentOutOfRangeException.ThrowIfInFuture(argument);
@@ -26,7 +26,7 @@ public sealed class ArgumentOutOfRangeException_ThrowIfInFutureTests
 
         // Act & Assert
         ArgumentOutOfRangeException.ThrowIfInFuture(argument);
-        _ = await Assert.That(argument).IsLessThanOrEqualTo(DateTimeOffset.UtcNow.AddSeconds(5));
+        _ = await Assert.That(argument).IsLessThanOrEqualTo(DateTimeOffset.UtcNow.AddSeconds(5D));
     }
 
     [Test]
@@ -44,7 +44,7 @@ public sealed class ArgumentOutOfRangeException_ThrowIfInFutureTests
     public void ThrowIfInFuture_DateTime_WhenValueIsInFuture_ThrowsArgumentOutOfRangeException()
     {
         // Arrange
-        var argument = DateTime.UtcNow.AddHours(1);
+        var argument = DateTime.UtcNow.AddHours(1D);
 
         // Act
         void Act() => ArgumentOutOfRangeException.ThrowIfInFuture(argument);
@@ -68,7 +68,7 @@ public sealed class ArgumentOutOfRangeException_ThrowIfInFutureTests
     public void ThrowIfInFuture_DateOnly_WhenValueIsInFuture_ThrowsArgumentOutOfRangeException()
     {
         // Arrange
-        var argument = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
+        var argument = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1D));
 
         // Act
         void Act() => ArgumentOutOfRangeException.ThrowIfInFuture(argument);
@@ -85,7 +85,7 @@ public sealed class ArgumentOutOfRangeException_ThrowIfInFutureTests
 
         // Act & Assert
         ArgumentOutOfRangeException.ThrowIfInFuture(argument);
-        _ = await Assert.That(argument).IsLessThanOrEqualTo(DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)));
+        _ = await Assert.That(argument).IsLessThanOrEqualTo(DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1D)));
     }
 }
 #endif

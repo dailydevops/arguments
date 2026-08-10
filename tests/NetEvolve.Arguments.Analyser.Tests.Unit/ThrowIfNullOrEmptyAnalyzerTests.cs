@@ -12,8 +12,12 @@ using Microsoft.CodeAnalysis.Diagnostics;
 public sealed class ThrowIfNullOrEmptyAnalyzerTests
 {
     [Test]
-    public async Task Analyze_WhenIsNullOrEmptyCheckThrowsArgumentException_ReportsDiagnostic()
+    public async Task Analyze_WhenIsNullOrEmptyCheckThrowsArgumentException_ReportsDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -26,15 +30,23 @@ public sealed class ThrowIfNullOrEmptyAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullOrEmptyAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullOrEmptyAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
         _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0002");
     }
 
     [Test]
-    public async Task Analyze_WhenIsNullOrWhiteSpaceCheckThrowsArgumentException_ReportsDiagnostic()
+    public async Task Analyze_WhenIsNullOrWhiteSpaceCheckThrowsArgumentException_ReportsDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -47,14 +59,22 @@ public sealed class ThrowIfNullOrEmptyAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullOrEmptyAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullOrEmptyAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
     }
 
     [Test]
-    public async Task Analyze_WhenParamNameArgumentNamesADifferentParameter_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenParamNameArgumentNamesADifferentParameter_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -67,14 +87,22 @@ public sealed class ThrowIfNullOrEmptyAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullOrEmptyAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullOrEmptyAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenExceptionHasNonEmptyMessage_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenExceptionHasNonEmptyMessage_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -87,14 +115,21 @@ public sealed class ThrowIfNullOrEmptyAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullOrEmptyAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullOrEmptyAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenIsNullOrEmptyCheckThrowsArgumentNullException_ReportsDiagnostic()
+    public async Task Analyze_WhenIsNullOrEmptyCheckThrowsArgumentNullException_ReportsDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
         // Throwing ArgumentNullException for an IsNullOrEmpty/IsNullOrWhiteSpace check is itself a bug for the
         // whitespace-only/empty-but-non-null case; the same throw-helper fix corrects the wrong exception type too.
         const string source = """
@@ -109,15 +144,23 @@ public sealed class ThrowIfNullOrEmptyAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullOrEmptyAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullOrEmptyAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
         _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0002");
     }
 
     [Test]
-    public async Task Analyze_WhenIsNullOrWhiteSpaceCheckThrowsArgumentNullException_ReportsDiagnostic()
+    public async Task Analyze_WhenIsNullOrWhiteSpaceCheckThrowsArgumentNullException_ReportsDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -130,14 +173,22 @@ public sealed class ThrowIfNullOrEmptyAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullOrEmptyAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullOrEmptyAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
     }
 
     [Test]
-    public async Task CodeFix_WhenAppliedToIsNullOrWhiteSpaceThrowingArgumentNullException_ReplacesWithThrowIfNullOrWhiteSpaceCall()
+    public async Task CodeFix_WhenAppliedToIsNullOrWhiteSpaceThrowingArgumentNullException_ReplacesWithThrowIfNullOrWhiteSpaceCall(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -153,7 +204,8 @@ public sealed class ThrowIfNullOrEmptyAnalyzerTests
         var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
             new ThrowIfNullOrEmptyAnalyzer(),
             new ThrowIfNullOrEmptyCodeFixProvider(),
-            source
+            source,
+            cancellationToken: cancellationToken
         );
 
         const string expected = """
@@ -172,8 +224,12 @@ public sealed class ThrowIfNullOrEmptyAnalyzerTests
     }
 
     [Test]
-    public async Task Analyze_WhenBuiltInThrowIfNullOrEmptyAvailable_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenBuiltInThrowIfNullOrEmptyAvailable_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -189,15 +245,19 @@ public sealed class ThrowIfNullOrEmptyAnalyzerTests
         var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
             new ThrowIfNullOrEmptyAnalyzer(),
             source,
-            useLegacyReferences: false
+            useLegacyReferences: false,
+            cancellationToken: cancellationToken
         );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenOnlyThrowIfNullOrEmptyIsBuiltIn_StillReportsDiagnosticForIsNullOrWhiteSpace()
+    public async Task Analyze_WhenOnlyThrowIfNullOrEmptyIsBuiltIn_StillReportsDiagnosticForIsNullOrWhiteSpace(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
         // Simulates net7.0's System.Runtime shape, where ArgumentException.ThrowIfNullOrEmpty already exists
         // but ArgumentException.ThrowIfNullOrWhiteSpace does not (it arrived only in .NET 8). Gating the whole
         // rule on a single probe for "ThrowIfNullOrEmpty" would wrongly suppress this IsNullOrWhiteSpace case,
@@ -214,15 +274,21 @@ public sealed class ThrowIfNullOrEmptyAnalyzerTests
             }
             """;
 
-        var diagnostics = await GetDiagnosticsWithOnlyThrowIfNullOrEmptyBuiltInAsync(source);
+        var diagnostics = await GetDiagnosticsWithOnlyThrowIfNullOrEmptyBuiltInAsync(
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
         _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0002");
     }
 
     [Test]
-    public async Task Analyze_WhenOnlyThrowIfNullOrEmptyIsBuiltIn_DoesNotReportDiagnosticForIsNullOrEmpty()
+    public async Task Analyze_WhenOnlyThrowIfNullOrEmptyIsBuiltIn_DoesNotReportDiagnosticForIsNullOrEmpty(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
         // Same simulated net7.0 shape as above, but for the branch whose built-in helper already exists:
         // that branch must stay suppressed to avoid duplicating the built-in CA1511 analyzer.
         const string source = """
@@ -237,7 +303,10 @@ public sealed class ThrowIfNullOrEmptyAnalyzerTests
             }
             """;
 
-        var diagnostics = await GetDiagnosticsWithOnlyThrowIfNullOrEmptyBuiltInAsync(source);
+        var diagnostics = await GetDiagnosticsWithOnlyThrowIfNullOrEmptyBuiltInAsync(
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
@@ -248,11 +317,15 @@ public sealed class ThrowIfNullOrEmptyAnalyzerTests
     /// <see cref="AnalyzerVerifier"/>'s two reference sets (all built-ins present, or none) can represent.
     /// </summary>
     /// <param name="source">The C# source to analyze.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>The diagnostics <see cref="ThrowIfNullOrEmptyAnalyzer"/> reports for <paramref name="source"/>.</returns>
     private static async Task<ImmutableArray<Diagnostic>> GetDiagnosticsWithOnlyThrowIfNullOrEmptyBuiltInAsync(
-        string source
+        string source,
+        CancellationToken cancellationToken = default
     )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string stubBclSource = """
             namespace System
             {
@@ -320,8 +393,8 @@ public sealed class ThrowIfNullOrEmptyAnalyzerTests
             "TestAssembly",
             new[]
             {
-                CSharpSyntaxTree.ParseText(stubBclSource, parseOptions),
-                CSharpSyntaxTree.ParseText(source, parseOptions),
+                CSharpSyntaxTree.ParseText(stubBclSource, parseOptions, cancellationToken: cancellationToken),
+                CSharpSyntaxTree.ParseText(source, parseOptions, cancellationToken: cancellationToken),
             },
             Array.Empty<MetadataReference>(),
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
@@ -330,7 +403,7 @@ public sealed class ThrowIfNullOrEmptyAnalyzerTests
         // Guard against the stub BCL silently failing to bind (e.g. a missing well-known type), which would
         // make the "no diagnostic" assertions in the calling tests pass for the wrong reason.
         var compilationErrors = compilation
-            .GetDiagnostics()
+            .GetDiagnostics(cancellationToken: cancellationToken)
             .Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error)
             .ToImmutableArray();
 
@@ -349,8 +422,10 @@ public sealed class ThrowIfNullOrEmptyAnalyzerTests
     }
 
     [Test]
-    public async Task Analyze_WhenIfHasElseClause_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenIfHasElseClause_DoesNotReportDiagnostic(CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -369,14 +444,22 @@ public sealed class ThrowIfNullOrEmptyAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullOrEmptyAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullOrEmptyAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenMethodIsNotRecognized_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenMethodIsNotRecognized_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -389,14 +472,22 @@ public sealed class ThrowIfNullOrEmptyAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullOrEmptyAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullOrEmptyAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenQualifierIsNotString_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenQualifierIsNotString_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -414,14 +505,22 @@ public sealed class ThrowIfNullOrEmptyAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullOrEmptyAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullOrEmptyAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenQualifiedAsSystemString_ReportsDiagnostic()
+    public async Task Analyze_WhenQualifiedAsSystemString_ReportsDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -434,14 +533,22 @@ public sealed class ThrowIfNullOrEmptyAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfNullOrEmptyAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfNullOrEmptyAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
     }
 
     [Test]
-    public async Task CodeFix_WhenAppliedToIsNullOrEmpty_ReplacesWithThrowIfNullOrEmptyCall()
+    public async Task CodeFix_WhenAppliedToIsNullOrEmpty_ReplacesWithThrowIfNullOrEmptyCall(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -457,7 +564,8 @@ public sealed class ThrowIfNullOrEmptyAnalyzerTests
         var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
             new ThrowIfNullOrEmptyAnalyzer(),
             new ThrowIfNullOrEmptyCodeFixProvider(),
-            source
+            source,
+            cancellationToken: cancellationToken
         );
 
         const string expected = """
@@ -476,8 +584,12 @@ public sealed class ThrowIfNullOrEmptyAnalyzerTests
     }
 
     [Test]
-    public async Task CodeFix_WhenAppliedToIsNullOrWhiteSpace_ReplacesWithThrowIfNullOrWhiteSpaceCall()
+    public async Task CodeFix_WhenAppliedToIsNullOrWhiteSpace_ReplacesWithThrowIfNullOrWhiteSpaceCall(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -493,7 +605,8 @@ public sealed class ThrowIfNullOrEmptyAnalyzerTests
         var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
             new ThrowIfNullOrEmptyAnalyzer(),
             new ThrowIfNullOrEmptyCodeFixProvider(),
-            source
+            source,
+            cancellationToken: cancellationToken
         );
 
         const string expected = """

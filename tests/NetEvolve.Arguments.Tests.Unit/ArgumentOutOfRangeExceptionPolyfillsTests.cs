@@ -33,7 +33,7 @@ public sealed class ArgumentOutOfRangeExceptionPolyfillsTests
     public void ThrowIfZero_Double_WhenValueIsZero_ThrowsArgumentOutOfRangeException()
     {
         // Arrange
-        var value = 0.0;
+        var value = 0.0D;
 
         // Act
         void Act() => ArgumentOutOfRangeException.ThrowIfZero(value);
@@ -44,12 +44,12 @@ public sealed class ArgumentOutOfRangeExceptionPolyfillsTests
 
     [Test]
     [Arguments(1.5)]
-    [Arguments(-1.5)]
+    [Arguments(-1.5D)]
     public async Task ThrowIfZero_Double_WhenValueIsNotZero_DoesNotThrow(double value)
     {
         // Act & Assert
         ArgumentOutOfRangeException.ThrowIfZero(value);
-        _ = await Assert.That(value).IsNotEqualTo(0.0);
+        _ = await Assert.That(value).IsNotEqualTo(0.0D);
     }
 
     [Test]
@@ -80,7 +80,7 @@ public sealed class ArgumentOutOfRangeExceptionPolyfillsTests
     public void ThrowIfNegative_Double_WhenValueIsNegative_ThrowsArgumentOutOfRangeException()
     {
         // Arrange
-        var value = -1.5;
+        var value = -1.5D;
 
         // Act
         void Act() => ArgumentOutOfRangeException.ThrowIfNegative(value);
@@ -96,7 +96,7 @@ public sealed class ArgumentOutOfRangeExceptionPolyfillsTests
     {
         // Act & Assert
         ArgumentOutOfRangeException.ThrowIfNegative(value);
-        _ = await Assert.That(value).IsGreaterThanOrEqualTo(0.0);
+        _ = await Assert.That(value).IsGreaterThanOrEqualTo(0.0D);
     }
 
     [Test]
@@ -149,7 +149,7 @@ public sealed class ArgumentOutOfRangeExceptionPolyfillsTests
     public void ThrowIfNegativeOrZero_Double_WhenValueIsZero_ThrowsArgumentOutOfRangeException()
     {
         // Arrange
-        var value = 0.0;
+        var value = 0.0D;
 
         // Act
         void Act() => ArgumentOutOfRangeException.ThrowIfNegativeOrZero(value);
@@ -162,7 +162,7 @@ public sealed class ArgumentOutOfRangeExceptionPolyfillsTests
     public void ThrowIfNegativeOrZero_Double_WhenValueIsNegative_ThrowsArgumentOutOfRangeException()
     {
         // Arrange
-        var value = -1.5;
+        var value = -1.5D;
 
         // Act
         void Act() => ArgumentOutOfRangeException.ThrowIfNegativeOrZero(value);
@@ -178,7 +178,7 @@ public sealed class ArgumentOutOfRangeExceptionPolyfillsTests
     {
         // Act & Assert
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(value);
-        _ = await Assert.That(value).IsGreaterThan(0.0);
+        _ = await Assert.That(value).IsGreaterThan(0.0D);
     }
 
     [Test]

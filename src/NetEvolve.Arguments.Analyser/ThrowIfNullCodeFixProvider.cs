@@ -68,7 +68,7 @@ public sealed class ThrowIfNullCodeFixProvider : CodeFixProvider
 
     /// <summary>Rewrites an <c>if (arg is null) throw ...;</c> statement into a single <c>ArgumentNullException.ThrowIfNull(arg);</c> call.</summary>
     /// <param name="document">The document containing the diagnostic.</param>
-    /// <param name="ifStatement">The <c>if</c> statement to replace.</param>
+    /// <param name="ifStatement">The <see langword="if"/> statement to replace.</param>
     /// <param name="cancellationToken">The token used to cancel the fix.</param>
     /// <returns>The updated document, or the original document if the pattern can no longer be matched.</returns>
     private static async Task<Document> ApplyIfStatementFixAsync(
@@ -77,6 +77,8 @@ public sealed class ThrowIfNullCodeFixProvider : CodeFixProvider
         CancellationToken cancellationToken
     )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         if (
@@ -119,6 +121,8 @@ public sealed class ThrowIfNullCodeFixProvider : CodeFixProvider
         CancellationToken cancellationToken
     )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var containingStatement = coalesce.FirstAncestorOrSelf<StatementSyntax>();
 

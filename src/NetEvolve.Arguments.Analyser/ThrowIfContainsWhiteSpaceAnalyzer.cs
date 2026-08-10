@@ -1,4 +1,4 @@
-namespace NetEvolve.Arguments.Analyser;
+﻿namespace NetEvolve.Arguments.Analyser;
 
 using System;
 using System.Collections.Immutable;
@@ -32,8 +32,8 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzer : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.IfStatement);
     }
 
-    /// <summary>Analyzes an <c>if</c> statement and reports NEA0008 when it is a white-space-check-then-throw of <see cref="ArgumentException"/>.</summary>
-    /// <param name="context">The syntax-node analysis context for the <c>if</c> statement being visited.</param>
+    /// <summary>Analyzes an <see langword="if"/> statement and reports NEA0008 when it is a white-space-check-then-throw of <see cref="ArgumentException"/>.</summary>
+    /// <param name="context">The syntax-node analysis context for the <see langword="if"/> statement being visited.</param>
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
         var ifStatement = (IfStatementSyntax)context.Node;
@@ -106,7 +106,7 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzer : DiagnosticAnalyzer
     /// <item><description><c>arg.Where(char.IsWhiteSpace).Any()</c>.</description></item>
     /// </list>
     /// </summary>
-    /// <param name="condition">The <c>if</c> statement's condition expression.</param>
+    /// <param name="condition">The <see langword="if"/> statement's condition expression.</param>
     /// <param name="argument">When this method returns <see langword="true"/>, the string argument being checked; otherwise, <see langword="null"/>.</param>
     /// <param name="invocationsToVerify">
     /// When this method returns <see langword="true"/>, the invocation(s) that must still be confirmed (via the
@@ -377,7 +377,7 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzer : DiagnosticAnalyzer
         && method.Name == expectedMethodName
         && containingType.ToDisplayString() == "System.Linq.Enumerable";
 
-    /// <summary>Determines whether an expression is a <c>char.IsWhiteSpace</c> member access, either via the <c>char</c> keyword or the <c>Char</c> identifier.</summary>
+    /// <summary>Determines whether an expression is a <c>char.IsWhiteSpace</c> member access, either via the <see cref="char"/> keyword or the <c>Char</c> identifier.</summary>
     /// <param name="expression">The expression to test.</param>
     /// <returns><see langword="true"/> if <paramref name="expression"/> is <c>char.IsWhiteSpace</c> or <c>Char.IsWhiteSpace</c>; otherwise, <see langword="false"/>.</returns>
     private static bool IsCharIsWhiteSpaceMemberAccess(ExpressionSyntax expression)

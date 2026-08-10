@@ -5,6 +5,11 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
+[SuppressMessage(
+    "Maintainability",
+    "NE0001:Declare one type per file with a matching file name",
+    Justification = "Obsolete"
+)]
 public static partial class Argument
 {
     /// <summary>Throws an exception if <paramref name="argument"/> is null, empty, or consists only of white-space characters.</summary>

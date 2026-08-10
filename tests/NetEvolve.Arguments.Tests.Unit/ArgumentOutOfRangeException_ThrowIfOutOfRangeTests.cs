@@ -67,10 +67,10 @@ public sealed class ArgumentOutOfRangeException_ThrowIfOutOfRangeTests
     public async Task ThrowIfOutOfRange_WithDoubles_WhenValueWithinRange_DoesNotThrow()
     {
         // Arrange
-        var argument = 7.5;
+        var argument = 7.5D;
 
         // Act & Assert
-        ArgumentOutOfRangeException.ThrowIfOutOfRange(argument, 5.0, 10.0);
-        _ = await Assert.That(argument).IsGreaterThanOrEqualTo(5.0).And.IsLessThanOrEqualTo(10.0);
+        ArgumentOutOfRangeException.ThrowIfOutOfRange(argument, 5.0D, 10.0D);
+        _ = await Assert.That(argument).IsGreaterThanOrEqualTo(5.0D).And.IsLessThanOrEqualTo(10.0D);
     }
 }
