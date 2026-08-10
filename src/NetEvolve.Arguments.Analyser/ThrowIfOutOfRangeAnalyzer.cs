@@ -164,6 +164,8 @@ public sealed class ThrowIfOutOfRangeAnalyzer : DiagnosticAnalyzer
         CancellationToken cancellationToken
     )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var operandType = semanticModel.GetTypeInfo(comparison.ValueExpression, cancellationToken).Type;
 
         if (operandType is null || operandType.TypeKind == TypeKind.Error)
@@ -206,6 +208,8 @@ public sealed class ThrowIfOutOfRangeAnalyzer : DiagnosticAnalyzer
         CancellationToken cancellationToken
     )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var type = semanticModel.GetTypeInfo(operand, cancellationToken).Type;
 
         if (type is null)

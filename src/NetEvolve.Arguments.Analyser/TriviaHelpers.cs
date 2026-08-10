@@ -34,9 +34,9 @@ internal static class TriviaHelpers
         var interiorComments = ifStatement
             .DescendantTrivia()
             .Where(trivia =>
-                trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
+                (trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia))
+                && !alreadyCarried.Contains(trivia)
             )
-            .Where(trivia => !alreadyCarried.Contains(trivia))
             .ToList();
 
         if (interiorComments.Count == 0)

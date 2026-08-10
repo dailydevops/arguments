@@ -1,5 +1,7 @@
 namespace NetEvolve.Arguments.Analyser.Tests.Unit;
 
+using System.Threading;
+
 public sealed class ThrowIfLengthAnalyzerTests
 {
     [Test]
@@ -8,9 +10,12 @@ public sealed class ThrowIfLengthAnalyzerTests
     [Arguments("argument.Length < 5 || argument.Length > 100", "ThrowIfLengthOutOfRange(argument, 5, 100);")]
     public async Task Analyze_WhenLengthComparisonThrowsArgumentException_ReportsDiagnosticAndFixes(
         string condition,
-        string expectedInvocation
+        string expectedInvocation,
+        CancellationToken cancellationToken = default
     )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var source = $$"""
             using System;
 
@@ -23,7 +28,11 @@ public sealed class ThrowIfLengthAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfLengthAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfLengthAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
         _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0006");
@@ -31,7 +40,8 @@ public sealed class ThrowIfLengthAnalyzerTests
         var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
             new ThrowIfLengthAnalyzer(),
             new ThrowIfLengthCodeFixProvider(),
-            source
+            source,
+            cancellationToken: cancellationToken
         );
 
         var expected = $$"""
@@ -50,8 +60,12 @@ public sealed class ThrowIfLengthAnalyzerTests
     }
 
     [Test]
-    public async Task Analyze_WhenCombinedRangeTargetsHaveInteriorTrivia_ReportsDiagnostic()
+    public async Task Analyze_WhenCombinedRangeTargetsHaveInteriorTrivia_ReportsDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var source = """
             using System;
 
@@ -70,15 +84,23 @@ public sealed class ThrowIfLengthAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfLengthAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfLengthAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
         _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0006");
     }
 
     [Test]
-    public async Task Analyze_WhenExceptionHasEmptyMessageAndMatchingParamName_ReportsDiagnostic()
+    public async Task Analyze_WhenExceptionHasEmptyMessageAndMatchingParamName_ReportsDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -91,7 +113,11 @@ public sealed class ThrowIfLengthAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfLengthAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfLengthAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
     }
@@ -114,8 +140,13 @@ public sealed class ThrowIfLengthAnalyzerTests
             }
             """
     )]
-    public async Task Analyze_WhenConditionOrExceptionIsNotRecognized_DoesNotReportDiagnostic(string statement)
+    public async Task Analyze_WhenConditionOrExceptionIsNotRecognized_DoesNotReportDiagnostic(
+        string statement,
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var source = $$"""
             using System;
 
@@ -128,7 +159,11 @@ public sealed class ThrowIfLengthAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfLengthAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfLengthAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
@@ -136,8 +171,14 @@ public sealed class ThrowIfLengthAnalyzerTests
     [Test]
     [Arguments("int[] argument", "argument.Length > 100")]
     [Arguments("System.Span<char> argument", "argument.Length > 100")]
-    public async Task Analyze_WhenLengthReceiverIsNotString_DoesNotReportDiagnostic(string parameter, string condition)
+    public async Task Analyze_WhenLengthReceiverIsNotString_DoesNotReportDiagnostic(
+        string parameter,
+        string condition,
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var source = $$"""
             using System;
 
@@ -150,14 +191,22 @@ public sealed class ThrowIfLengthAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfLengthAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfLengthAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenLengthReceiverIsUserDefinedTypeWithLengthProperty_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenLengthReceiverIsUserDefinedTypeWithLengthProperty_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var source = """
             using System;
 
@@ -175,7 +224,11 @@ public sealed class ThrowIfLengthAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfLengthAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfLengthAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }

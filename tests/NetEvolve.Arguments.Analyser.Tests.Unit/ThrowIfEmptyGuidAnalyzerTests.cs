@@ -1,13 +1,20 @@
 namespace NetEvolve.Arguments.Analyser.Tests.Unit;
 
+using System.Threading;
+
 public sealed class ThrowIfEmptyGuidAnalyzerTests
 {
     [Test]
     [Arguments("argument == Guid.Empty")]
     [Arguments("Guid.Empty == argument")]
     [Arguments("argument.Equals(Guid.Empty)")]
-    public async Task Analyze_WhenEmptyGuidCheckThrowsArgumentException_ReportsDiagnostic(string condition)
+    public async Task Analyze_WhenEmptyGuidCheckThrowsArgumentException_ReportsDiagnostic(
+        string condition,
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var source = $$"""
             using System;
 
@@ -20,7 +27,11 @@ public sealed class ThrowIfEmptyGuidAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfEmptyGuidAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfEmptyGuidAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
         _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0009");
@@ -41,8 +52,13 @@ public sealed class ThrowIfEmptyGuidAnalyzerTests
             }
             """
     )]
-    public async Task Analyze_WhenConditionOrExceptionIsNotRecognized_DoesNotReportDiagnostic(string statement)
+    public async Task Analyze_WhenConditionOrExceptionIsNotRecognized_DoesNotReportDiagnostic(
+        string statement,
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var source = $$"""
             using System;
 
@@ -55,14 +71,22 @@ public sealed class ThrowIfEmptyGuidAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfEmptyGuidAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfEmptyGuidAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenArgumentIsNullableGuid_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenArgumentIsNullableGuid_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -75,14 +99,22 @@ public sealed class ThrowIfEmptyGuidAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfEmptyGuidAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfEmptyGuidAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenArgumentIsObject_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenArgumentIsObject_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -95,14 +127,22 @@ public sealed class ThrowIfEmptyGuidAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfEmptyGuidAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfEmptyGuidAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenGuidIsUserDefinedType_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenGuidIsUserDefinedType_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
             using Guid = Other.Guid;
@@ -124,14 +164,22 @@ public sealed class ThrowIfEmptyGuidAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfEmptyGuidAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfEmptyGuidAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task CodeFix_WhenApplied_ReplacesWithThrowIfEmptyGuidCall()
+    public async Task CodeFix_WhenApplied_ReplacesWithThrowIfEmptyGuidCall(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -147,7 +195,8 @@ public sealed class ThrowIfEmptyGuidAnalyzerTests
         var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
             new ThrowIfEmptyGuidAnalyzer(),
             new ThrowIfEmptyGuidCodeFixProvider(),
-            source
+            source,
+            cancellationToken: cancellationToken
         );
 
         const string expected = """

@@ -69,6 +69,8 @@ public sealed class ThrowIfLengthCodeFixProvider : CodeFixProvider
         CancellationToken cancellationToken
     )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         if (

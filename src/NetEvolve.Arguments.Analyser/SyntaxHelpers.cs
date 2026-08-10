@@ -73,6 +73,8 @@ internal static class SyntaxHelpers
         CancellationToken cancellationToken
     )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var typeInfo = semanticModel.GetTypeInfo(objectCreation, cancellationToken);
         var exceptionType = semanticModel.Compilation.GetTypeByMetadataName(fullyQualifiedMetadataName);
 
@@ -97,6 +99,8 @@ internal static class SyntaxHelpers
         out ObjectCreationExpressionSyntax? objectCreation
     )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         objectCreation = null;
 
         if (ifStatement.Else is not null)
@@ -264,6 +268,8 @@ internal static class SyntaxHelpers
         out ExpressionSyntax? argument
     )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         argument = null;
 
         if (!binary.IsKind(SyntaxKind.CoalesceExpression))
@@ -324,7 +330,7 @@ internal static class SyntaxHelpers
         }
 
         var text = literal.Token.ValueText;
-        return double.TryParse(text, NumberStyles.Any, CultureInfo.InvariantCulture, out var value) && value == 0;
+        return double.TryParse(text, NumberStyles.Any, CultureInfo.InvariantCulture, out var value) && value == 0D;
     }
 
     /// <summary>Determines whether an expression is the <see langword="default"/> literal or an explicitly-typed <c>default(T)</c> expression.</summary>

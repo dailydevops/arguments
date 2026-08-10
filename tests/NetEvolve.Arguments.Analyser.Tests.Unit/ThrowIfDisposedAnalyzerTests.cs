@@ -1,10 +1,16 @@
 namespace NetEvolve.Arguments.Analyser.Tests.Unit;
 
+using System.Threading;
+
 public sealed class ThrowIfDisposedAnalyzerTests
 {
     [Test]
-    public async Task Analyze_WhenDisposedCheckThrowsObjectDisposedException_ReportsDiagnostic()
+    public async Task Analyze_WhenDisposedCheckThrowsObjectDisposedException_ReportsDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -19,15 +25,23 @@ public sealed class ThrowIfDisposedAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfDisposedAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfDisposedAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
         _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0005");
     }
 
     [Test]
-    public async Task Analyze_WhenExceptionHasAnExplicitMessage_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenExceptionHasAnExplicitMessage_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -42,14 +56,20 @@ public sealed class ThrowIfDisposedAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfDisposedAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfDisposedAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenInStaticMethod_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenInStaticMethod_DoesNotReportDiagnostic(CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -64,14 +84,22 @@ public sealed class ThrowIfDisposedAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfDisposedAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfDisposedAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenInLocalFunctionInsideStaticMethod_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenInLocalFunctionInsideStaticMethod_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -91,14 +119,22 @@ public sealed class ThrowIfDisposedAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfDisposedAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfDisposedAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenInLambdaInsideStaticMethod_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenInLambdaInsideStaticMethod_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -118,14 +154,22 @@ public sealed class ThrowIfDisposedAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfDisposedAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfDisposedAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenInLocalFunctionInsideInstanceMethod_ReportsDiagnostic()
+    public async Task Analyze_WhenInLocalFunctionInsideInstanceMethod_ReportsDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -145,7 +189,11 @@ public sealed class ThrowIfDisposedAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfDisposedAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfDisposedAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
         _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0005");
@@ -164,8 +212,13 @@ public sealed class ThrowIfDisposedAnalyzerTests
             }
             """
     )]
-    public async Task Analyze_WhenExceptionTypeOrShapeIsNotRecognized_DoesNotReportDiagnostic(string statement)
+    public async Task Analyze_WhenExceptionTypeOrShapeIsNotRecognized_DoesNotReportDiagnostic(
+        string statement,
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var source = $$"""
             using System;
 
@@ -180,14 +233,22 @@ public sealed class ThrowIfDisposedAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfDisposedAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfDisposedAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenBuiltInThrowIfAvailable_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenBuiltInThrowIfAvailable_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -205,15 +266,18 @@ public sealed class ThrowIfDisposedAnalyzerTests
         var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
             new ThrowIfDisposedAnalyzer(),
             source,
-            useLegacyReferences: false
+            useLegacyReferences: false,
+            cancellationToken: cancellationToken
         );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task CodeFix_WhenApplied_ReplacesWithThrowIfCall()
+    public async Task CodeFix_WhenApplied_ReplacesWithThrowIfCall(CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -231,7 +295,8 @@ public sealed class ThrowIfDisposedAnalyzerTests
         var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
             new ThrowIfDisposedAnalyzer(),
             new ThrowIfDisposedCodeFixProvider(),
-            source
+            source,
+            cancellationToken: cancellationToken
         );
 
         const string expected = """

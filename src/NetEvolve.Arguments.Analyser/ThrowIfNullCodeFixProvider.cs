@@ -77,6 +77,8 @@ public sealed class ThrowIfNullCodeFixProvider : CodeFixProvider
         CancellationToken cancellationToken
     )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         if (
@@ -119,6 +121,8 @@ public sealed class ThrowIfNullCodeFixProvider : CodeFixProvider
         CancellationToken cancellationToken
     )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var containingStatement = coalesce.FirstAncestorOrSelf<StatementSyntax>();
 

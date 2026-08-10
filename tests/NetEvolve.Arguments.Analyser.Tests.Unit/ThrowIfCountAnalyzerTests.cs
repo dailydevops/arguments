@@ -1,5 +1,7 @@
 namespace NetEvolve.Arguments.Analyser.Tests.Unit;
 
+using System.Threading;
+
 public sealed class ThrowIfCountAnalyzerTests
 {
     [Test]
@@ -9,9 +11,12 @@ public sealed class ThrowIfCountAnalyzerTests
     [Arguments("argument.Count() > 100", "ThrowIfCountGreaterThan(argument, 100);")]
     public async Task Analyze_WhenCountComparisonThrowsArgumentException_ReportsDiagnosticAndFixes(
         string condition,
-        string expectedInvocation
+        string expectedInvocation,
+        CancellationToken cancellationToken = default
     )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var source = $$"""
             using System;
             using System.Collections.Generic;
@@ -26,7 +31,11 @@ public sealed class ThrowIfCountAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfCountAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfCountAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
         _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0007");
@@ -34,7 +43,8 @@ public sealed class ThrowIfCountAnalyzerTests
         var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
             new ThrowIfCountAnalyzer(),
             new ThrowIfCountCodeFixProvider(),
-            source
+            source,
+            cancellationToken: cancellationToken
         );
 
         var expected = $$"""
@@ -55,8 +65,12 @@ public sealed class ThrowIfCountAnalyzerTests
     }
 
     [Test]
-    public async Task Analyze_WhenExceptionHasEmptyMessageAndMatchingParamName_ReportsDiagnostic()
+    public async Task Analyze_WhenExceptionHasEmptyMessageAndMatchingParamName_ReportsDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
             using System.Collections.Generic;
@@ -70,7 +84,11 @@ public sealed class ThrowIfCountAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfCountAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfCountAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
     }
@@ -92,8 +110,13 @@ public sealed class ThrowIfCountAnalyzerTests
             }
             """
     )]
-    public async Task Analyze_WhenConditionOrExceptionIsNotRecognized_DoesNotReportDiagnostic(string statement)
+    public async Task Analyze_WhenConditionOrExceptionIsNotRecognized_DoesNotReportDiagnostic(
+        string statement,
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var source = $$"""
             using System;
             using System.Collections.Generic;
@@ -107,14 +130,22 @@ public sealed class ThrowIfCountAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfCountAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfCountAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenReceiverIsUserDefinedNonCollectionType_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenReceiverIsUserDefinedNonCollectionType_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -132,14 +163,22 @@ public sealed class ThrowIfCountAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfCountAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfCountAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenReceiverIsNonGenericCollection_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenReceiverIsNonGenericCollection_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
             using System.Collections;
@@ -153,14 +192,22 @@ public sealed class ThrowIfCountAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfCountAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfCountAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenCountInvocationIsNotLinqEnumerableCount_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenCountInvocationIsNotLinqEnumerableCount_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
             using System.Collections;
@@ -184,14 +231,20 @@ public sealed class ThrowIfCountAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfCountAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfCountAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenReceiverIsArray_ReportsDiagnostic()
+    public async Task Analyze_WhenReceiverIsArray_ReportsDiagnostic(CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
             using System.Linq;
@@ -205,15 +258,23 @@ public sealed class ThrowIfCountAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfCountAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfCountAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
         _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0007");
     }
 
     [Test]
-    public async Task Analyze_WhenReceiverIsPlainIEnumerable_ReportsDiagnostic()
+    public async Task Analyze_WhenReceiverIsPlainIEnumerable_ReportsDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
             using System.Collections.Generic;
@@ -228,15 +289,21 @@ public sealed class ThrowIfCountAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfCountAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfCountAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
         _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0007");
     }
 
     [Test]
-    public async Task Analyze_WhenReceiverIsString_ReportsDiagnostic()
+    public async Task Analyze_WhenReceiverIsString_ReportsDiagnostic(CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
             using System.Linq;
@@ -250,15 +317,23 @@ public sealed class ThrowIfCountAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfCountAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfCountAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
         _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0007");
     }
 
     [Test]
-    public async Task Analyze_WhenReceiverTypeIsUnresolved_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenReceiverTypeIsUnresolved_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
 
@@ -271,7 +346,11 @@ public sealed class ThrowIfCountAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfCountAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfCountAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }

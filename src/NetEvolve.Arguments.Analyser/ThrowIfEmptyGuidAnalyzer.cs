@@ -97,6 +97,8 @@ public sealed class ThrowIfEmptyGuidAnalyzer : DiagnosticAnalyzer
         out ExpressionSyntax? argument
     )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         condition = SyntaxHelpers.Unwrap(condition);
         argument = null;
 
@@ -141,6 +143,8 @@ public sealed class ThrowIfEmptyGuidAnalyzer : DiagnosticAnalyzer
         CancellationToken cancellationToken
     )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         if (
             SyntaxHelpers.Unwrap(expression)
             is not MemberAccessExpressionSyntax { Name.Identifier.Text: "Empty" } memberAccess

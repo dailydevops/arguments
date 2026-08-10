@@ -11,4 +11,8 @@
     <!-- Disable the recommended analyzer package -->
     <DisableRecommendedPackage>Meziantou.Analyzer</DisableRecommendedPackage>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <CopyrightYearStart>2025</CopyrightYearStart>
+  </PropertyGroup>
 </Project>

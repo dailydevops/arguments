@@ -22,7 +22,7 @@ public sealed class ArgumentOutOfRangeException_ThrowIfInPastTests
     public async Task ThrowIfInPast_DateTimeOffset_WhenValueIsSlightlyInFuture_DoesNotThrow()
     {
         // Arrange
-        var argument = DateTimeOffset.UtcNow.AddSeconds(1);
+        var argument = DateTimeOffset.UtcNow.AddSeconds(1D);
 
         // Act & Assert
         ArgumentOutOfRangeException.ThrowIfInPast(argument);
@@ -33,7 +33,7 @@ public sealed class ArgumentOutOfRangeException_ThrowIfInPastTests
     public async Task ThrowIfInPast_DateTimeOffset_WhenValueIsInFuture_DoesNotThrow()
     {
         // Arrange
-        var argument = DateTimeOffset.UtcNow.AddHours(1);
+        var argument = DateTimeOffset.UtcNow.AddHours(1D);
 
         // Act & Assert
         ArgumentOutOfRangeException.ThrowIfInPast(argument);
@@ -57,7 +57,7 @@ public sealed class ArgumentOutOfRangeException_ThrowIfInPastTests
     public async Task ThrowIfInPast_DateTime_WhenValueIsInFuture_DoesNotThrow()
     {
         // Arrange
-        var argument = DateTime.UtcNow.AddHours(1);
+        var argument = DateTime.UtcNow.AddHours(1D);
 
         // Act & Assert
         ArgumentOutOfRangeException.ThrowIfInPast(argument);

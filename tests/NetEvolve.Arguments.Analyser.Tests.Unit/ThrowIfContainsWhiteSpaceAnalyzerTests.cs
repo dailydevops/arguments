@@ -1,5 +1,7 @@
 namespace NetEvolve.Arguments.Analyser.Tests.Unit;
 
+using System.Threading;
+
 public sealed class ThrowIfContainsWhiteSpaceAnalyzerTests
 {
     [Test]
@@ -16,8 +18,13 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzerTests
     [Arguments("0 != argument.Count(char.IsWhiteSpace)")]
     [Arguments("argument.Where(c => char.IsWhiteSpace(c)).Any()")]
     [Arguments("argument.Where(char.IsWhiteSpace).Any()")]
-    public async Task Analyze_WhenWhiteSpaceCheckThrowsArgumentException_ReportsDiagnosticAndFixes(string condition)
+    public async Task Analyze_WhenWhiteSpaceCheckThrowsArgumentException_ReportsDiagnosticAndFixes(
+        string condition,
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var source = $$"""
             using System;
             using System.Linq;
@@ -31,7 +38,11 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfContainsWhiteSpaceAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfContainsWhiteSpaceAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
         _ = await Assert.That(diagnostics[0].Id).IsEqualTo("NEA0008");
@@ -39,7 +50,8 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzerTests
         var fixedSource = await AnalyzerVerifier.ApplyFixAsync(
             new ThrowIfContainsWhiteSpaceAnalyzer(),
             new ThrowIfContainsWhiteSpaceCodeFixProvider(),
-            source
+            source,
+            cancellationToken: cancellationToken
         );
 
         const string expected = """
@@ -59,8 +71,12 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzerTests
     }
 
     [Test]
-    public async Task Analyze_WhenExceptionHasEmptyMessageAndMatchingParamName_ReportsDiagnostic()
+    public async Task Analyze_WhenExceptionHasEmptyMessageAndMatchingParamName_ReportsDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         const string source = """
             using System;
             using System.Linq;
@@ -74,7 +90,11 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfContainsWhiteSpaceAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfContainsWhiteSpaceAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).Count().IsEqualTo(1);
     }
@@ -115,8 +135,13 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzerTests
             }
             """
     )]
-    public async Task Analyze_WhenConditionOrExceptionIsNotRecognized_DoesNotReportDiagnostic(string statement)
+    public async Task Analyze_WhenConditionOrExceptionIsNotRecognized_DoesNotReportDiagnostic(
+        string statement,
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var source = $$"""
             using System;
             using System.Linq;
@@ -130,7 +155,11 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfContainsWhiteSpaceAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfContainsWhiteSpaceAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
@@ -139,8 +168,13 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzerTests
     [Arguments("char[]")]
     [Arguments("System.Collections.Generic.List<char>")]
     [Arguments("System.Collections.Generic.IEnumerable<char>")]
-    public async Task Analyze_WhenReceiverIsNotString_DoesNotReportDiagnostic(string parameterType)
+    public async Task Analyze_WhenReceiverIsNotString_DoesNotReportDiagnostic(
+        string parameterType,
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var source = $$"""
             using System;
             using System.Linq;
@@ -154,7 +188,11 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfContainsWhiteSpaceAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfContainsWhiteSpaceAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
@@ -166,9 +204,12 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzerTests
     [Arguments("System.Collections.Generic.List<char>", "chars.Where(char.IsWhiteSpace).Any()")]
     public async Task Analyze_WhenReceiverIsNotString_NewShapes_DoesNotReportDiagnostic(
         string parameterType,
-        string condition
+        string condition,
+        CancellationToken cancellationToken = default
     )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var source = $$"""
             using System;
             using System.Linq;
@@ -182,14 +223,21 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfContainsWhiteSpaceAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfContainsWhiteSpaceAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenReceiverHasNoResolvableType_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenReceiverHasNoResolvableType_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
         // "Predicate" refers to the method group C.Predicate(char), which has no type of its own
         // (SemanticModel.GetTypeInfo(...).Type is null for it), exercising the null-propagation
         // branch of IsStringReceiver rather than the "resolved but not string" branch already
@@ -209,7 +257,11 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfContainsWhiteSpaceAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfContainsWhiteSpaceAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
@@ -217,8 +269,13 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzerTests
     [Test]
     [Arguments("argument.Count(char.IsWhiteSpace) > 0")]
     [Arguments("argument.Where(char.IsWhiteSpace).Any()")]
-    public async Task Analyze_WhenCountOrWhereIsUserDefinedExtension_DoesNotReportDiagnostic(string condition)
+    public async Task Analyze_WhenCountOrWhereIsUserDefinedExtension_DoesNotReportDiagnostic(
+        string condition,
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var source = $$"""
             using System;
 
@@ -240,14 +297,22 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfContainsWhiteSpaceAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfContainsWhiteSpaceAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenAnyIsUserDefinedExtensionOnWhereResult_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenAnyIsUserDefinedExtensionOnWhereResult_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var source = """
             using System;
             using System.Linq;
@@ -266,14 +331,21 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfContainsWhiteSpaceAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfContainsWhiteSpaceAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenAnyResolutionIsAmbiguous_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenAnyResolutionIsAmbiguous_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
         // Two equally applicable extension methods named "Any" make the call ambiguous, so
         // SemanticModel.GetSymbolInfo(...).Symbol is null (CandidateReason.OverloadResolutionFailure).
         // This exercises the "Symbol is IMethodSymbol" pattern failing in IsLinqEnumerableMethod, as
@@ -302,14 +374,22 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfContainsWhiteSpaceAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfContainsWhiteSpaceAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }
 
     [Test]
-    public async Task Analyze_WhenAnyIsNotLinqEnumerableAny_DoesNotReportDiagnostic()
+    public async Task Analyze_WhenAnyIsNotLinqEnumerableAny_DoesNotReportDiagnostic(
+        CancellationToken cancellationToken = default
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var source = """
             using System;
             using System.Linq;
@@ -328,7 +408,11 @@ public sealed class ThrowIfContainsWhiteSpaceAnalyzerTests
             }
             """;
 
-        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(new ThrowIfContainsWhiteSpaceAnalyzer(), source);
+        var diagnostics = await AnalyzerVerifier.GetDiagnosticsAsync(
+            new ThrowIfContainsWhiteSpaceAnalyzer(),
+            source,
+            cancellationToken: cancellationToken
+        );
 
         _ = await Assert.That(diagnostics).IsEmpty();
     }

@@ -2,7 +2,6 @@ namespace NetEvolve.Arguments.Analyser;
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -86,6 +85,8 @@ public sealed class ThrowIfDefaultAnalyzer : DiagnosticAnalyzer
         CancellationToken cancellationToken
     )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var type = semanticModel.GetTypeInfo(argument, cancellationToken).Type;
 
         if (type is null || !type.IsValueType)

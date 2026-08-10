@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>$(_ProjectTargetFrameworks)</TargetFrameworks>
     <Description>A universal polyfill library that provides modern ArgumentNullException.ThrowIf* and ArgumentException.ThrowIf* helper methods across all .NET runtimes (.NET Standard 2.0+, .NET Framework 4.6.2+, .NET 6.0+), enabling consistent argument validation patterns regardless of target framework version.</Description>

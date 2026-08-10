@@ -184,6 +184,8 @@ public sealed class ThrowIfCountAnalyzer : DiagnosticAnalyzer
         CancellationToken cancellationToken
     )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         if (!IsSupportedReceiverType(target, semanticModel, cancellationToken))
         {
             return false;
@@ -222,6 +224,8 @@ public sealed class ThrowIfCountAnalyzer : DiagnosticAnalyzer
         CancellationToken cancellationToken
     )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var type = semanticModel.GetTypeInfo(target, cancellationToken).Type;
 
         if (type is null or IErrorTypeSymbol)
