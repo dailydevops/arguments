@@ -1,6 +1,7 @@
 ﻿namespace NetEvolve.Arguments.Tests.Unit;
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 /// <summary>
@@ -486,5 +487,259 @@ public sealed class ArgumentException_ConcreteCollectionOverloadTests
         // Act & Assert
         ArgumentException.ThrowIfCountOutOfRange(argument, 1, 3);
         _ = await Assert.That(argument.Count).IsEqualTo(3);
+    }
+
+    [Test]
+    public void ThrowIfNullOrEmpty_NonGenericEnumerable_WhenNull_ThrowsArgumentNullException()
+    {
+        // Arrange
+        ArrayList? argument = null;
+
+        // Act
+        void Act() => ArgumentException.ThrowIfNullOrEmpty(argument);
+
+        // Assert
+        _ = Assert.Throws<ArgumentNullException>("argument", Act);
+    }
+
+    [Test]
+    public void ThrowIfNullOrEmpty_NonGenericEnumerable_WhenInvalid_ThrowsArgumentException()
+    {
+        // Arrange
+        var argument = new ArrayList();
+
+        // Act
+        void Act() => ArgumentException.ThrowIfNullOrEmpty(argument);
+
+        // Assert
+        _ = Assert.Throws<ArgumentException>("argument", Act);
+    }
+
+    [Test]
+    public async Task ThrowIfNullOrEmpty_NonGenericEnumerable_WhenValid_DoesNotThrow()
+    {
+        // Arrange
+        var argument = new ArrayList { 1, 2, 3 };
+
+        // Act & Assert
+        ArgumentException.ThrowIfNullOrEmpty(argument);
+        _ = await Assert.That(argument.Count).IsEqualTo(3);
+    }
+
+    [Test]
+    public void ThrowIfCountGreaterThan_NonGenericEnumerable_WhenNull_ThrowsArgumentNullException()
+    {
+        // Arrange
+        ArrayList? argument = null;
+
+        // Act
+        void Act() => ArgumentException.ThrowIfCountGreaterThan(argument, 2);
+
+        // Assert
+        _ = Assert.Throws<ArgumentNullException>("argument", Act);
+    }
+
+    [Test]
+    public void ThrowIfCountGreaterThan_NonGenericEnumerable_WhenInvalid_ThrowsArgumentException()
+    {
+        // Arrange
+        var argument = new ArrayList { 1, 2, 3 };
+
+        // Act
+        void Act() => ArgumentException.ThrowIfCountGreaterThan(argument, 2);
+
+        // Assert
+        _ = Assert.Throws<ArgumentException>("argument", Act);
+    }
+
+    [Test]
+    public async Task ThrowIfCountGreaterThan_NonGenericEnumerable_WhenValid_DoesNotThrow()
+    {
+        // Arrange
+        var argument = new ArrayList { 1, 2, 3 };
+
+        // Act & Assert
+        ArgumentException.ThrowIfCountGreaterThan(argument, 3);
+        _ = await Assert.That(argument.Count).IsEqualTo(3);
+    }
+
+    [Test]
+    public void ThrowIfCountGreaterThan_LazyNonGenericEnumerable_WhenInvalid_ThrowsArgumentException()
+    {
+        // Arrange
+        var argument = new LazyEnumerable(3);
+
+        // Act
+        void Act() => ArgumentException.ThrowIfCountGreaterThan(argument, 2);
+
+        // Assert
+        _ = Assert.Throws<ArgumentException>("argument", Act);
+    }
+
+    [Test]
+    public async Task ThrowIfCountGreaterThan_Array_BindsToArrayOverload()
+    {
+        // Arrange
+        int[] argument = [1, 2, 3];
+
+        // Act
+        void Act() => ArgumentException.ThrowIfCountGreaterThan(argument, 2);
+
+        // Assert
+        var exception = Assert.Throws<ArgumentException>("argument", Act);
+        _ = await Assert.That(exception.Message).StartsWith("The array length");
+    }
+
+    [Test]
+    public void ThrowIfCountLessThan_NonGenericEnumerable_WhenNull_ThrowsArgumentNullException()
+    {
+        // Arrange
+        ArrayList? argument = null;
+
+        // Act
+        void Act() => ArgumentException.ThrowIfCountLessThan(argument, 4);
+
+        // Assert
+        _ = Assert.Throws<ArgumentNullException>("argument", Act);
+    }
+
+    [Test]
+    public void ThrowIfCountLessThan_NonGenericEnumerable_WhenInvalid_ThrowsArgumentException()
+    {
+        // Arrange
+        var argument = new ArrayList { 1, 2, 3 };
+
+        // Act
+        void Act() => ArgumentException.ThrowIfCountLessThan(argument, 4);
+
+        // Assert
+        _ = Assert.Throws<ArgumentException>("argument", Act);
+    }
+
+    [Test]
+    public async Task ThrowIfCountLessThan_NonGenericEnumerable_WhenValid_DoesNotThrow()
+    {
+        // Arrange
+        var argument = new ArrayList { 1, 2, 3 };
+
+        // Act & Assert
+        ArgumentException.ThrowIfCountLessThan(argument, 3);
+        _ = await Assert.That(argument.Count).IsEqualTo(3);
+    }
+
+    [Test]
+    public void ThrowIfCountLessThan_LazyNonGenericEnumerable_WhenInvalid_ThrowsArgumentException()
+    {
+        // Arrange
+        var argument = new LazyEnumerable(3);
+
+        // Act
+        void Act() => ArgumentException.ThrowIfCountLessThan(argument, 4);
+
+        // Assert
+        _ = Assert.Throws<ArgumentException>("argument", Act);
+    }
+
+    [Test]
+    public async Task ThrowIfCountLessThan_Array_BindsToArrayOverload()
+    {
+        // Arrange
+        int[] argument = [1, 2, 3];
+
+        // Act
+        void Act() => ArgumentException.ThrowIfCountLessThan(argument, 4);
+
+        // Assert
+        var exception = Assert.Throws<ArgumentException>("argument", Act);
+        _ = await Assert.That(exception.Message).StartsWith("The array length");
+    }
+
+    [Test]
+    public void ThrowIfCountOutOfRange_NonGenericEnumerable_WhenNull_ThrowsArgumentNullException()
+    {
+        // Arrange
+        ArrayList? argument = null;
+
+        // Act
+        void Act() => ArgumentException.ThrowIfCountOutOfRange(argument, 4, 5);
+
+        // Assert
+        _ = Assert.Throws<ArgumentNullException>("argument", Act);
+    }
+
+    [Test]
+    public void ThrowIfCountOutOfRange_NonGenericEnumerable_WhenInvalid_ThrowsArgumentException()
+    {
+        // Arrange
+        var argument = new ArrayList { 1, 2, 3 };
+
+        // Act
+        void Act() => ArgumentException.ThrowIfCountOutOfRange(argument, 4, 5);
+
+        // Assert
+        _ = Assert.Throws<ArgumentException>("argument", Act);
+    }
+
+    [Test]
+    public async Task ThrowIfCountOutOfRange_NonGenericEnumerable_WhenValid_DoesNotThrow()
+    {
+        // Arrange
+        var argument = new ArrayList { 1, 2, 3 };
+
+        // Act & Assert
+        ArgumentException.ThrowIfCountOutOfRange(argument, 1, 3);
+        _ = await Assert.That(argument.Count).IsEqualTo(3);
+    }
+
+    [Test]
+    public void ThrowIfCountOutOfRange_LazyNonGenericEnumerable_WhenInvalid_ThrowsArgumentException()
+    {
+        // Arrange
+        var argument = new LazyEnumerable(3);
+
+        // Act
+        void Act() => ArgumentException.ThrowIfCountOutOfRange(argument, 4, 5);
+
+        // Assert
+        _ = Assert.Throws<ArgumentException>("argument", Act);
+    }
+
+    [Test]
+    public async Task ThrowIfCountOutOfRange_Array_BindsToArrayOverload()
+    {
+        // Arrange
+        int[] argument = [1, 2, 3];
+
+        // Act
+        void Act() => ArgumentException.ThrowIfCountOutOfRange(argument, 4, 5);
+
+        // Assert
+        var exception = Assert.Throws<ArgumentException>("argument", Act);
+        _ = await Assert.That(exception.Message).StartsWith("The array length");
+    }
+
+    [Test]
+    public async Task ThrowIfNullOrEmpty_LazyNonGenericEnumerable_WhenEmpty_DoesNotEnumerate()
+    {
+        // Arrange
+        var argument = new LazyEnumerable(0);
+
+        // Act & Assert
+        ArgumentException.ThrowIfNullOrEmpty(argument);
+        _ = await Assert.That(argument.EnumerationCount).IsEqualTo(0);
+    }
+
+    private sealed class LazyEnumerable(int count) : IEnumerable
+    {
+        public int EnumerationCount { get; private set; }
+
+        public IEnumerator GetEnumerator()
+        {
+            EnumerationCount++;
+            for (var i = 0; i < count; i++)
+            {
+                yield return i;
+            }
+        }
     }
 }
