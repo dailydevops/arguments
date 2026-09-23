@@ -730,6 +730,19 @@ public sealed class ArgumentException_ConcreteCollectionOverloadTests
         _ = await Assert.That(argument.EnumerationCount).IsEqualTo(0);
     }
 
+    [Test]
+    public void ThrowIfCountOutOfRange_NonGenericEnumerable_WhenCountExceedsMaximum_ThrowsArgumentException()
+    {
+        // Arrange
+        var argument = new ArrayList { 1, 2, 3 };
+
+        // Act
+        void Act() => ArgumentException.ThrowIfCountOutOfRange(argument, 1, 2);
+
+        // Assert
+        _ = Assert.Throws<ArgumentException>("argument", Act);
+    }
+
     private sealed class LazyEnumerable(int count) : IEnumerable
     {
         public int EnumerationCount { get; private set; }
