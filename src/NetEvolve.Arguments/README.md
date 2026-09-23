@@ -195,7 +195,22 @@ public void ProcessArray(string[] items)
 {
     ArgumentException.ThrowIfNullOrEmpty(items);
 }
+
+// Concrete collections such as List<T>, HashSet<T> or Dictionary<TKey, TValue> - no cast required
+public void ProcessConcrete(List<string> items, Dictionary<int, string> lookup)
+{
+    ArgumentException.ThrowIfNullOrEmpty(items);
+    ArgumentException.ThrowIfNullOrEmpty(lookup);
+}
+
+// Non-generic IEnumerable, e.g. ArrayList
+public void ProcessLegacy(ArrayList items)
+{
+    ArgumentException.ThrowIfNullOrEmpty(items);
+}
 ```
+
+The collection overloads of `ThrowIfNullOrEmpty`, `ThrowIfCountGreaterThan`, `ThrowIfCountLessThan` and `ThrowIfCountOutOfRange` are ranked with `[OverloadResolutionPriority]`, so the most specific overload is always chosen: `T[]` > `ICollection<T>` > `IReadOnlyCollection<T>` > `IEnumerable<T>` > `IEnumerable`.
 
 #### ThrowIfCountGreaterThan
 

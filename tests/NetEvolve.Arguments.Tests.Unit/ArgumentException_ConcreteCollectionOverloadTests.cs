@@ -5,8 +5,9 @@ using System.Collections;
 using System.Collections.Generic;
 
 /// <summary>
-/// Verifies that concrete collection types implementing both <see cref="ICollection{T}"/> and
-/// <see cref="IReadOnlyCollection{T}"/> resolve to a single overload without casting.
+/// Verifies the <c>OverloadResolutionPriority</c> ranking of the collection overloads: concrete collection types
+/// implementing both <see cref="ICollection{T}"/> and <see cref="IReadOnlyCollection{T}"/> resolve without casting,
+/// arrays bind to the <c>T[]</c> overload and non-generic sequences fall back to the <see cref="IEnumerable"/> overload.
 /// </summary>
 public sealed class ArgumentException_ConcreteCollectionOverloadTests
 {
