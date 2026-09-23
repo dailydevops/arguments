@@ -2,7 +2,7 @@ namespace NetEvolve.Arguments.Analyser;
 
 using Microsoft.CodeAnalysis;
 
-/// <summary>Holds the <see cref="DiagnosticDescriptor"/> for every rule (NEA0001-NEA0009) exposed by this analyzer package.</summary>
+/// <summary>Holds the <see cref="DiagnosticDescriptor"/> for every rule (NEA0001-NEA0010) exposed by this analyzer package.</summary>
 internal static class DiagnosticDescriptors
 {
     /// <summary>The base URL under which every rule's Markdown documentation page is published.</summary>
@@ -114,5 +114,17 @@ internal static class DiagnosticDescriptors
         isEnabledByDefault: true,
         description: "A Guid.Empty check that throws ArgumentException can be replaced by the ArgumentException.ThrowIfEmptyGuid throw-helper provided by NetEvolve.Arguments.",
         helpLinkUri: $"{HelpLinkBase}/NEA0009.md"
+    );
+
+    /// <summary>NEA0010: reports a null-or-empty-collection-check-then-throw pattern that can be replaced by <c>ArgumentException.ThrowIfNullOrEmpty</c>.</summary>
+    public static readonly DiagnosticDescriptor ThrowIfNullOrEmptyCollection = new(
+        id: "NEA0010",
+        title: "Use ArgumentException.ThrowIfNullOrEmpty for collections",
+        messageFormat: "Use 'ArgumentException.ThrowIfNullOrEmpty({0})' instead of the explicit null-or-empty collection check and throw",
+        category: "Maintainability",
+        defaultSeverity: DiagnosticSeverity.Info,
+        isEnabledByDefault: true,
+        description: "A null-or-empty collection check that throws ArgumentException or ArgumentNullException can be replaced by the ArgumentException.ThrowIfNullOrEmpty collection throw-helper provided by NetEvolve.Arguments.",
+        helpLinkUri: $"{HelpLinkBase}/NEA0010.md"
     );
 }
