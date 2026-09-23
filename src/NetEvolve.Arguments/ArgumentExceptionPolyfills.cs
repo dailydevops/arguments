@@ -64,6 +64,7 @@ public static class ArgumentExceptionPolyfills
         /// <param name="paramName">The name of the parameter with which <paramref name="argument"/> corresponds.</param>
         /// <exception cref="ArgumentNullException"><paramref name="argument"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentException"><paramref name="argument"/> is empty.</exception>
+        [OverloadResolutionPriority(1)]
         public static void ThrowIfNullOrEmpty<T>(
             [NotNull] ICollection<T>? argument,
             [CallerArgumentExpression(nameof(argument))] string? paramName = null
@@ -108,6 +109,7 @@ public static class ArgumentExceptionPolyfills
         /// <param name="paramName">The name of the parameter with which <paramref name="argument"/> corresponds.</param>
         /// <exception cref="ArgumentNullException"><paramref name="argument"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentException"><paramref name="argument"/> is empty.</exception>
+        [OverloadResolutionPriority(1)]
         public static void ThrowIfNullOrEmpty<T>(
             [NotNull] T[]? argument,
             [CallerArgumentExpression(nameof(argument))] string? paramName = null
@@ -304,6 +306,7 @@ public static class ArgumentExceptionPolyfills
         /// <param name="paramName">The name of the parameter with which <paramref name="argument"/> corresponds.</param>
         /// <exception cref="ArgumentNullException"><paramref name="argument"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentException">The count of <paramref name="argument"/> exceeds <paramref name="maxCount"/>.</exception>
+        [OverloadResolutionPriority(1)]
         public static void ThrowIfCountGreaterThan<T>(
             [NotNull] ICollection<T>? argument,
             int maxCount,
@@ -358,6 +361,7 @@ public static class ArgumentExceptionPolyfills
         /// <param name="paramName">The name of the parameter with which <paramref name="argument"/> corresponds.</param>
         /// <exception cref="ArgumentNullException"><paramref name="argument"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentException">The length of <paramref name="argument"/> exceeds <paramref name="maxCount"/>.</exception>
+        [OverloadResolutionPriority(1)]
         public static void ThrowIfCountGreaterThan<T>(
             [NotNull] T[]? argument,
             int maxCount,
@@ -431,6 +435,7 @@ public static class ArgumentExceptionPolyfills
         /// <param name="paramName">The name of the parameter with which <paramref name="argument"/> corresponds.</param>
         /// <exception cref="ArgumentNullException"><paramref name="argument"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentException">The count of <paramref name="argument"/> is less than <paramref name="minCount"/>.</exception>
+        [OverloadResolutionPriority(1)]
         public static void ThrowIfCountLessThan<T>(
             [NotNull] ICollection<T>? argument,
             int minCount,
@@ -485,6 +490,7 @@ public static class ArgumentExceptionPolyfills
         /// <param name="paramName">The name of the parameter with which <paramref name="argument"/> corresponds.</param>
         /// <exception cref="ArgumentNullException"><paramref name="argument"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentException">The length of <paramref name="argument"/> is less than <paramref name="minCount"/>.</exception>
+        [OverloadResolutionPriority(1)]
         public static void ThrowIfCountLessThan<T>(
             [NotNull] T[]? argument,
             int minCount,
@@ -561,6 +567,7 @@ public static class ArgumentExceptionPolyfills
         /// <param name="paramName">The name of the parameter with which <paramref name="argument"/> corresponds.</param>
         /// <exception cref="ArgumentNullException"><paramref name="argument"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentException">The count of <paramref name="argument"/> is outside the specified range.</exception>
+        [OverloadResolutionPriority(1)]
         public static void ThrowIfCountOutOfRange<T>(
             [NotNull] ICollection<T>? argument,
             int minCount,
@@ -619,6 +626,7 @@ public static class ArgumentExceptionPolyfills
         /// <param name="paramName">The name of the parameter with which <paramref name="argument"/> corresponds.</param>
         /// <exception cref="ArgumentNullException"><paramref name="argument"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentException">The length of <paramref name="argument"/> is outside the specified range.</exception>
+        [OverloadResolutionPriority(1)]
         public static void ThrowIfCountOutOfRange<T>(
             [NotNull] T[]? argument,
             int minCount,
