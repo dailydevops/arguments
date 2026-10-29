@@ -2,6 +2,7 @@ namespace NetEvolve.Arguments.Analyser;
 
 using Microsoft.CodeAnalysis;
 
+// Stryker disable once String : static initialiser mutants cannot be attributed by the MTP runner (Stryker 5.0.0) and stay Pending
 /// <summary>Holds the <see cref="DiagnosticDescriptor"/> for every rule (NEA0001-NEA0010) exposed by this analyzer package.</summary>
 internal static class DiagnosticDescriptors
 {

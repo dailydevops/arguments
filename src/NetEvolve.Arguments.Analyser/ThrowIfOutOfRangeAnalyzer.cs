@@ -34,6 +34,7 @@ public sealed class ThrowIfOutOfRangeAnalyzer : DiagnosticAnalyzer
     /// <c>ThrowIfEqual</c>/<c>ThrowIfNotEqual</c> (backed by <see cref="EqualityComparer{T}"/>) and <c>ThrowIfZero</c>
     /// (backed by <c>INumberBase&lt;T&gt;.IsZero</c>) do not have this divergence and are intentionally not listed.
     /// </summary>
+    // Stryker disable once String : static initialiser mutants cannot be attributed by the MTP runner (Stryker 5.0.0) and stay Pending
     private static readonly ImmutableHashSet<string> NaNSensitiveHelperNames = ImmutableHashSet.Create(
         StringComparer.Ordinal,
         "ThrowIfNegative",
