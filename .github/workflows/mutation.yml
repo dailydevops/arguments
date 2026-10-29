@@ -22,3 +22,13 @@ jobs:
       configurationFile: ${{ inputs.configurationFile || 'stryker-config.json' }}
     secrets: inherit
 
+
+  # The default run mutates the highest TFM (net10.0), where the #if !NET8_0_OR_GREATER / !NET7_0_OR_GREATER
+  # polyfill branches compile to nothing. This additional run mutates the net6.0 build of the polyfills only.
+  polyfills:
+    if: github.run_id != 1
+    name: Run Stryker.NET Mutation Testing (net6.0 polyfills)
+    uses: dailydevops/pipelines/.github/workflows/mutation-dotnet.yml@d2437a28457fe70bb760b6318e399afcaa442569 # 2.5.341
+    with:
+      configurationFile: stryker-config.net6.json
+    secrets: inherit
