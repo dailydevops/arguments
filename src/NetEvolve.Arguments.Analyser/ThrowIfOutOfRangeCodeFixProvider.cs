@@ -37,10 +37,13 @@ public sealed class ThrowIfOutOfRangeCodeFixProvider : CodeFixProvider
         var diagnostic = context.Diagnostics[0];
         var ifStatement = root.FindNode(diagnostic.Location.SourceSpan).FirstAncestorOrSelf<IfStatementSyntax>();
 
+        if (ifStatement is null)
+        {
+            return;
+        }
+
         if (
-            ifStatement is null
-            || !ThrowIfOutOfRangeAnalyzer.TryGetComparison(ifStatement.Condition, out var comparison)
-            || comparison is null
+            !ThrowIfOutOfRangeAnalyzer.TryGetComparison(ifStatement.Condition, out var comparison) || comparison is null
         )
         {
             return;

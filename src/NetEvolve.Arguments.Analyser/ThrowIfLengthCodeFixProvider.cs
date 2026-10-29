@@ -37,9 +37,13 @@ public sealed class ThrowIfLengthCodeFixProvider : CodeFixProvider
         var diagnostic = context.Diagnostics[0];
         var ifStatement = root.FindNode(diagnostic.Location.SourceSpan).FirstAncestorOrSelf<IfStatementSyntax>();
 
+        if (ifStatement is null)
+        {
+            return;
+        }
+
         if (
-            ifStatement is null
-            || !ThrowIfLengthAnalyzer.TryGetLengthComparison(ifStatement.Condition, out var comparison)
+            !ThrowIfLengthAnalyzer.TryGetLengthComparison(ifStatement.Condition, out var comparison)
             || comparison is null
         )
         {
