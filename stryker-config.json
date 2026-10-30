@@ -9,7 +9,7 @@
       "tests/NetEvolve.Arguments.Analyser.Tests.Unit/NetEvolve.Arguments.Analyser.Tests.Unit.csproj",
       "tests/NetEvolve.Arguments.Tests.Unit/NetEvolve.Arguments.Tests.Unit.csproj"
     ],
-    "coverage-analysis": "perTest",
+    "coverage-analysis": "all",
     "mutate": ["**/*.cs", "!**/*.Designer.cs", "!**/*.g.cs", "!**/*.g.i.cs"],
     "test-runner": "mtp"
   }
