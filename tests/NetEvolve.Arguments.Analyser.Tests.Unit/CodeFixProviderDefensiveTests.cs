@@ -25,6 +25,8 @@ public sealed class CodeFixProviderDefensiveTests
         CancellationToken cancellationToken = default
     )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var provider = (CodeFixProvider)Activator.CreateInstance(providerType)!;
 
         var count = await AnalyzerVerifier.CountRegisteredFixesAsync(provider, Source, "void M", cancellationToken);
@@ -42,6 +44,8 @@ public sealed class CodeFixProviderDefensiveTests
         CancellationToken cancellationToken = default
     )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var provider = (CodeFixProvider)Activator.CreateInstance(providerType)!;
 
         var count = await AnalyzerVerifier.CountRegisteredFixesAsync(
