@@ -37,10 +37,13 @@ public sealed class ThrowIfCountCodeFixProvider : CodeFixProvider
         var diagnostic = context.Diagnostics[0];
         var ifStatement = root.FindNode(diagnostic.Location.SourceSpan).FirstAncestorOrSelf<IfStatementSyntax>();
 
+        if (ifStatement is null)
+        {
+            return;
+        }
+
         if (
-            ifStatement is null
-            || !ThrowIfCountAnalyzer.TryGetCountComparison(ifStatement.Condition, out var comparison)
-            || comparison is null
+            !ThrowIfCountAnalyzer.TryGetCountComparison(ifStatement.Condition, out var comparison) || comparison is null
         )
         {
             return;

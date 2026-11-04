@@ -36,9 +36,13 @@ public sealed class ThrowIfNullOrEmptyCodeFixProvider : CodeFixProvider
         var diagnostic = context.Diagnostics[0];
         var ifStatement = root.FindNode(diagnostic.Location.SourceSpan).FirstAncestorOrSelf<IfStatementSyntax>();
 
+        if (ifStatement is null)
+        {
+            return;
+        }
+
         if (
-            ifStatement is null
-            || !ThrowIfNullOrEmptyAnalyzer.TryGetStringCheck(ifStatement.Condition, out _, out var helperName)
+            !ThrowIfNullOrEmptyAnalyzer.TryGetStringCheck(ifStatement.Condition, out _, out var helperName)
             || helperName is null
         )
         {

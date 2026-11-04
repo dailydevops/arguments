@@ -52,6 +52,44 @@ internal static class AnalyzerVerifier
         CancellationToken cancellationToken = default
     ) => ApplyFixAllCoreAsync(analyzer, codeFix, source, useLegacyReferences, cancellationToken: cancellationToken);
 
+    /// <summary>
+    /// Raises a synthetic diagnostic at the first occurrence of <paramref name="spanText"/> and returns how many
+    /// code actions the provider registers for it (used to cover the defensive "pattern no longer matches" exits).
+    /// </summary>
+    public static async Task<int> CountRegisteredFixesAsync(
+        CodeFixProvider codeFix,
+        string source,
+        string spanText,
+        CancellationToken cancellationToken = default
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        using var workspace = new AdhocWorkspace();
+        var project = workspace
+            .AddProject("TestProject", LanguageNames.CSharp)
+            .WithMetadataReferences(ModernReferences);
+        var document = workspace.AddDocument(project.Id, "Test.cs", SourceText.From(source));
+        var tree = (await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false))!;
+
+        var descriptor = new DiagnosticDescriptor(
+            codeFix.FixableDiagnosticIds[0],
+            "t",
+            "t",
+            "t",
+            DiagnosticSeverity.Warning,
+            true
+        );
+        var start = source.IndexOf(spanText, StringComparison.Ordinal);
+        var diagnostic = Diagnostic.Create(descriptor, Location.Create(tree, new TextSpan(start, spanText.Length)));
+
+        var count = 0;
+        var fixContext = new CodeFixContext(document, diagnostic, (_, _) => count++, cancellationToken);
+        await codeFix.RegisterCodeFixesAsync(fixContext).ConfigureAwait(false);
+
+        return count;
+    }
+
     private static async Task<ImmutableArray<Diagnostic>> GetDiagnosticsCoreAsync(
         DiagnosticAnalyzer analyzer,
         string source,
