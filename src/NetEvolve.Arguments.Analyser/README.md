@@ -126,7 +126,7 @@ See the [open issues](https://github.com/dailydevops/arguments/issues) for track
 
 ## Documentation
 
-For complete solution documentation, architecture decisions, and contributing guidelines, visit the [Arguments Repository](https://github.com/dailydevops/arguments).
+For complete solution documentation and contributing guidelines, visit the [Arguments Repository](https://github.com/dailydevops/arguments).
 
 ## Contributing
 
