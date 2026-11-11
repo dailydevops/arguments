@@ -186,7 +186,6 @@ src/
 tests/
 └── NetEvolve.Arguments.Tests.Unit/                 # Comprehensive unit tests
 
-decisions/                                          # Architecture Decision Records (ADRs)
 templates/                                          # Documentation templates
 ```
 
@@ -198,16 +197,6 @@ This library follows a polyfill architecture pattern:
 - **Framework detection**: Automatically detects target framework capabilities at compile time
 - **Zero-overhead abstraction**: On modern frameworks, the polyfills compile to simple pass-through calls or are eliminated entirely
 - **Backward compatibility**: Ensures older frameworks receive functionally equivalent implementations
-
-For detailed architectural decisions, see:
-
-- [Centralized Package Version Management](https://github.com/dailydevops/arguments/blob/main/decisions/2025-07-10-centralized-package-version-management.md)
-- [Conventional Commits](https://github.com/dailydevops/arguments/blob/main/decisions/2025-07-10-conventional-commits.md)
-- [GitVersion for Automated Semantic Versioning](https://github.com/dailydevops/arguments/blob/main/decisions/2025-07-10-gitversion-automated-semantic-versioning.md)
-- [.NET 10 and C# 13 Adoption](https://github.com/dailydevops/arguments/blob/main/decisions/2025-07-11-dotnet-10-csharp-13-adoption.md)
-- [English as Project Language](https://github.com/dailydevops/arguments/blob/main/decisions/2025-07-11-english-as-project-language.md)
-- [DateTimeOffset and TimeProvider Usage](https://github.com/dailydevops/arguments/blob/main/decisions/2026-01-21-datetimeoffset-and-timeprovider-usage.md)
-- [All Architecture Decision Records](https://github.com/dailydevops/arguments/tree/main/decisions/)
 
 ## Contributing
 
@@ -227,7 +216,6 @@ This project adheres to the Contributor Covenant [Code of Conduct](https://githu
 
 ### Documentation
 
-- **[Architecture Decision Records](https://github.com/dailydevops/arguments/tree/main/decisions/)** - Detailed architectural decisions and rationale
 - **[Contributing Guidelines](https://github.com/dailydevops/arguments/blob/main/CONTRIBUTING.md)** - How to contribute to this project
 - **[Code of Conduct](https://github.com/dailydevops/arguments/blob/main/CODE_OF_CONDUCT.md)** - Community standards and expectations
 - **[License](https://github.com/dailydevops/arguments/blob/main/LICENSE)** - Project licensing information (MIT License)
@@ -240,8 +228,6 @@ This project uses [GitVersion](https://gitversion.net/) for automated semantic v
 - **Major version** (1.0.0 → 2.0.0): Breaking changes indicated by `!` or `BREAKING CHANGE:` footer in commit messages
 - **Minor version** (1.0.0 → 1.1.0): New features added via `feat:` commits
 - **Patch version** (1.0.0 → 1.0.1): Bug fixes and maintenance via `fix:`, `chore:`, `docs:`, etc.
-
-For more details, see [GitVersion for Automated Semantic Versioning](https://github.com/dailydevops/arguments/blob/main/decisions/2025-07-10-gitversion-automated-semantic-versioning.md).
 
 ### Support
 
