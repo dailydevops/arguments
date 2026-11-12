@@ -147,9 +147,8 @@ public sealed class ThrowIfNullCodeFixProvider : CodeFixProvider
         {
             editor.InsertBefore(containingStatement, throwIfNullStatement);
             editor.ReplaceNode(coalesce, argument.WithoutTrivia());
-            editor.ReplaceNode(
-                containingStatement,
-                (currentNode, _) => currentNode.WithLeadingTrivia(SyntaxFactory.ElasticMarker)
+            editor.ReplaceNode(containingStatement, (currentNode, _) =>
+                currentNode.WithLeadingTrivia(SyntaxFactory.ElasticMarker)
             );
         }
         else
