@@ -209,8 +209,7 @@ internal static class AnalyzerVerifier
         var equivalenceKey = await GetEquivalenceKeyAsync(document, codeFix, diagnostics[0], cancellationToken)
             .ConfigureAwait(false);
 
-        var fixAllProvider =
-            codeFix.GetFixAllProvider()
+        var fixAllProvider = codeFix.GetFixAllProvider()
             ?? throw new InvalidOperationException("The code fix provider does not support Fix All.");
 
         var fixAllContext = new FixAllContext(
@@ -223,8 +222,7 @@ internal static class AnalyzerVerifier
             CancellationToken.None
         );
 
-        var fixAllAction =
-            await fixAllProvider.GetFixAsync(fixAllContext).ConfigureAwait(false)
+        var fixAllAction = await fixAllProvider.GetFixAsync(fixAllContext).ConfigureAwait(false)
             ?? throw new InvalidOperationException("No Fix All action was registered.");
 
         var operations = await fixAllAction.GetOperationsAsync(CancellationToken.None).ConfigureAwait(false);
