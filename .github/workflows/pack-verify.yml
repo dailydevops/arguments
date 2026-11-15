@@ -24,6 +24,7 @@ jobs:
       with:
         dotnet-version: |
           10.0.x
+          11.0.x
 
     - name: Verify packed package delivers a working analyzer
       shell: pwsh
